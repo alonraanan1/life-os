@@ -14,7 +14,10 @@ export async function POST(request:Request){
     const input=await readBody(request);
     const goal=await findByTitle('goal',input.title);
     if(!goal)return json({error:'goal_not_found'},404);
-    const data=validate('goal',{title:goal.data.title,target:goal.data.target,unit:goal.data.unit,date:goal.data.date,current:num(input.current)});
+    const delta=num(input.delta);
+    const absolute=num(input.current);
+    const nextCurrent=typeof delta==='number'?goal.data.current+delta:absolute;
+    const data=validate('goal',{title:goal.data.title,target:goal.data.target,unit:goal.data.unit,date:goal.data.date,current:nextCurrent});
     await upsert(database(),goal.id,'goal',data,goal.version);
     const pct=Math.min(100,Math.round(data.current/data.target*100));
     return json({ok:true,goal:data.title,current:data.current,target:data.target,pct});

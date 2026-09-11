@@ -44,9 +44,15 @@ Shortcut steps: Ask for Input (Number, range 1–5, or Choose from List with the
 
 GET (no body) returns `{ "goals": ["קרן חופשה ביוון"] }` — your live goal names.
 
-POST body: `{ "title": "קרן חופשה ביוון", "current": 3600 }` — `title` must match an existing goal's name; `current` is the new absolute progress value (not a delta — send the new total, same unit as the goal, e.g. ₪ or ק"מ). Returns `{"ok":true,"goal":"...","current":3600,"target":5000,"pct":72}` or 404 `{"error":"goal_not_found"}`.
+POST body: either `{ "title": "קרן חופשה ביוון", "delta": 200 }` (adds 200 to the goal's current progress — negative numbers subtract) or `{ "title": "...", "current": 3600 }` (sets the absolute value instead). `title` must match an existing goal's name. Returns `{"ok":true,"goal":"...","current":3600,"target":5000,"pct":72}` or 404 `{"error":"goal_not_found"}`.
 
-Shortcut steps: Get Contents of URL (GET, bearer header) → Get Dictionary from Input → Get Value for `goals` → Choose from List → Ask for Input (Number) → the new total → Get Contents of URL (POST, bearer header, JSON body `{"title": <chosen goal>, "current": <number>}`).
+Shortcut steps: Get Contents of URL (GET, bearer header) → Get Dictionary from Input → Get Value for `goals` → Choose from List → Ask for Input (Number) → how much to add → Get Contents of URL (POST, bearer header, JSON body `{"title": <chosen goal>, "delta": <number>}`).
+
+## Ready-made .shortcut files
+
+Six `.shortcut` files (one per action above, plus a dedicated "הוצאת אבא" shortcut — see below) were generated with the bearer key already embedded and delivered directly to the owner in chat; the menu shortcut still needs to be assembled by hand in the Shortcuts app (Choose from Menu → Run Shortcut per action), since personal automations/menus aren't something that imports from a file.
+
+"הוצאת אבא" is a stripped-down expense shortcut for a recurring case: charges made on the owner's father's card via Apple Pay. It only asks for the amount — category (`הוצאות אבא`) and description are fixed. Apple does not expose Apple Pay/Wallet transaction details to Shortcuts (no automation trigger can read a transaction's amount), so full hands-off logging isn't possible; this shortcut is the lowest-friction alternative (one tap, one number). It can optionally be wired to a Personal Automation that triggers when a notification arrives from Wallet, to open the shortcut automatically — but the amount still has to be typed in by hand.
 
 ## The menu shortcut
 
