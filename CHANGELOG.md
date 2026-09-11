@@ -19,6 +19,18 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Claude (Cowork), session 6 — Google sign-in replaces the password
+- **Summary:** The password login is gone. Sign-in is now Google OAuth restricted to one allowed address, and the session lasts 400 days and renews on every app open, so each device is signed in once and stays signed in.
+- **Files touched:** `lib/auth.ts`, `app/api/auth/route.ts`, `app/api/auth/google/route.ts` (new), `app/api/auth/google/callback/route.ts` (new), `app/api/expense/route.ts`, `components/life/auth-gate.tsx`, `app/globals.css`, `docs/SHORTCUTS.md`, `docs/IMPLEMENTATION_STATUS.md`.
+- **Open items / notes for the next AI:**
+  - **The flow:** `GET /api/auth/google` issues a random `state`, stores it in a short-lived HttpOnly cookie and redirects to Google with scope `openid email`. `GET /api/auth/google/callback` compares the state, exchanges the code at `oauth2.googleapis.com/token` with the client secret, and checks the returned `id_token` claims: `aud` equals our client id, `iss` is Google, `exp` is in the future, `email_verified` is true, and `email` equals `OWNER_EMAIL`. Anything else redirects to `/?login=<reason>` and the gate renders a Hebrew message. The id_token is trusted without signature verification because it is fetched directly from Google over TLS in the authorization-code exchange — do not copy this shortcut to an implicit flow.
+  - **`POST /api/auth` is deleted** along with `passwordHash`, `limited` and the `LIFE_SETUP_TOKEN` check. The `life_owner` and `life_attempts` tables still exist in D1 but nothing reads them; the Shortcuts intake no longer requires an owner row either. No migration was needed, so the CI token's missing D1 permission is still not a problem.
+  - **Cookie change worth knowing:** the session cookie moved from `SameSite=Strict` to `Lax`, because a Strict cookie is not returned on the navigation coming back from Google. CSRF protection on writes still comes from the `sameOrigin()` Origin check that every mutating endpoint performs — keep that check if you touch these routes.
+  - **Sessions renew on `GET /api/auth`**, which the gate calls on every app start, so an active user never gets logged out. Expiry is `SESSION_AGE` (400 days, the browser cookie ceiling).
+  - **Worker secrets now required:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OWNER_EMAIL`. `LIFE_SETUP_TOKEN` is dead and can be deleted. The Google client is registered with redirect URI `https://sites-project.alonraanan1.workers.dev/api/auth/google/callback`; the code derives it from the request origin, so a new hostname needs registering in Google Console too.
+  - **Recovery if the Google account is ever lost:** there is no password fallback by design. Access would be restored by registering a different address in `OWNER_EMAIL` with wrangler from the owner's machine.
+  - **Verified:** typecheck, tests (3/3) and build pass. One `react-compiler` lint finding remains in `auth-gate.tsx` (setState reached from an effect); the file previously carried one finding too, so the repo total is unchanged. The live sign-in was checked after deploy.
+
 ### 2026-09-11 — Claude (Cowork), session 6 — Stage 8: the last mock data is gone
 - **Summary:** Replaced the seeded home screen and timeline with live D1 data, split the page shell into real modules, and exposed backup, restore, trash and logout. The checklist in `docs/IMPLEMENTATION_STATUS.md` is now fully ticked.
 - **Files touched:** `app/page.tsx` (rewritten as a thin shell), `app/globals.css`, `components/life/today.tsx` (new), `components/life/timeline.tsx` (new), `components/life/data.tsx` (new), `components/life/nav.ts` (new), `.github/workflows/check.yml`, `docs/IMPLEMENTATION_STATUS.md`.

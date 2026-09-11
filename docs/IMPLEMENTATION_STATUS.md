@@ -1,6 +1,6 @@
 # Implementation handoff
 
-All eight stages are complete. The app runs on real persisted data end to end; no seeded mock data remains in the UI.
+All eight stages are complete. Sign-in is Google-only (single allowed account); the password login was removed at the user's request. The app runs on real persisted data end to end; no seeded mock data remains in the UI.
 
 - [x] 1. Synchronize GitHub and local changes; PR build checks.
 - [x] 2. Owner-only authentication and API protection.

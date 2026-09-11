@@ -1,9 +1,21 @@
 'use client';
-import {useEffect,useState,type ReactNode,type FormEvent} from 'react';
-import {LockKeyhole} from 'lucide-react';
-export function AuthGate({children}:{children:ReactNode}) {const [status,setStatus]=useState<'loading'|'login'|'setup'|'ready'|'error'>('loading');const [error,setError]=useState('');const [busy,setBusy]=useState(false);
-async function check(){try{const r=await fetch('/api/auth',{cache:'no-store'});const d=await r.json() as {error:string;authenticated?:boolean;setup?:boolean};if(!r.ok)throw new Error(d.error);setStatus(d.authenticated?'ready':d.setup?'setup':'login');setError('');}catch{setError('לא ניתן להתחבר לשירות כרגע.');setStatus('error');}}
-useEffect(()=>{void check();const expire=()=>{setStatus('login');setError('החיבור הסתיים. יש להתחבר שוב.');};window.addEventListener('life:unauthorized',expire);return()=>window.removeEventListener('life:unauthorized',expire);},[]);
-async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const data=new FormData(e.currentTarget);if(status==='setup'&&data.get('password')!==data.get('confirm')){setError('הסיסמאות אינן תואמות.');return;}setBusy(true);setError('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(data))});const d=await r.json() as {error:string;authenticated?:boolean;setup?:boolean};if(!r.ok)throw new Error(d.error);setStatus('ready');}catch(e){setError(e instanceof Error?e.message:'לא ניתן להתחבר');}finally{setBusy(false);}}
-if(status==='ready')return children;
-return <main className="auth-shell" dir="rtl"><div className="auth-brand">Life OS <span>המרחב האישי שלך</span></div><section className="auth-panel"><LockKeyhole size={30}/><h1>{status==='setup'?'מקום אחד. רק שלך.':'טוב שחזרת.'}</h1><p>{status==='setup'?'הזן את קוד ההפעלה הפרטי ובחר סיסמה. ההפעלה נדרשת פעם אחת בלבד.':'התחבר כדי לראות את המשימות, ההרגלים והנתונים שלך.'}</p>{status==='loading'?<p role="status">מתחבר…</p>:status==='error'?<button className="primary-action" onClick={check}>נסה שוב</button>:<form onSubmit={submit} className="life-form">{status==='setup'&&<label>קוד הפעלה<input name="setupToken" required autoComplete="off" type="password"/></label>}<label>סיסמה<input name="password" type="password" required minLength={12} maxLength={256} autoComplete={status==='setup'?'new-password':'current-password'}/></label>{status==='setup'&&<label>הקלד שוב את הסיסמה<input name="confirm" type="password" required minLength={12} autoComplete="new-password"/></label>}<button className="primary-action" disabled={busy}>{busy?'מתחבר…':status==='setup'?'פתיחת המרחב שלי':'כניסה'}</button></form>}{error&&<p role="alert" className="form-error">{error}</p>}</section></main>;}
+import {useEffect,useState,type ReactNode} from 'react';
+import {LockKeyhole,LogIn} from 'lucide-react';
+const reasons:Record<string,string>={state:'בקשת ההתחברות פגה. נסה שוב.',denied:'ההתחברות בוטלה.',forbidden:'החשבון הזה אינו מורשה להיכנס למרחב הזה.',config:'ההתחברות עם Google עדיין לא הוגדרה בשרת.',google:'Google לא אישרה את ההתחברות. נסה שוב.'};
+export function AuthGate({children}:{children:ReactNode}) {
+  const [status,setStatus]=useState<'loading'|'login'|'ready'|'error'>('loading');const [error,setError]=useState('');
+  async function check(first=false){
+    try{const response=await fetch('/api/auth',{cache:'no-store'});const data=await response.json() as {error?:string;authenticated?:boolean};if(!response.ok)throw new Error(data.error);if(first){const reason=new URLSearchParams(window.location.search).get('login');if(reason){setError(reasons[reason]||'ההתחברות לא הושלמה.');window.history.replaceState({},'',window.location.pathname);}}setStatus(data.authenticated?'ready':'login');}
+    catch{setError('לא ניתן להתחבר לשירות כרגע.');setStatus('error');}
+  }
+  useEffect(()=>{
+    void check(true);
+    const expire=()=>{setStatus('login');setError('החיבור הסתיים. יש להתחבר שוב.');};
+    window.addEventListener('life:unauthorized',expire);
+    return()=>window.removeEventListener('life:unauthorized',expire);
+  },[]);
+  if(status==='ready')return children;
+  return <main className="auth-shell" dir="rtl"><div className="auth-brand">Life OS <span>המרחב האישי שלך</span></div><section className="auth-panel"><LockKeyhole size={30}/><h1>טוב שחזרת.</h1><p>המרחב הזה פתוח רק לחשבון שלך. התחברות אחת בכל מכשיר, ואתה נשאר מחובר.</p>
+  {status==='loading'?<output>מתחבר…</output>:status==='error'?<button className="primary-action" onClick={()=>{setStatus('loading');void check();}}>נסה שוב</button>:<button className="google-action" onClick={()=>{window.location.assign('/api/auth/google');}}><LogIn size={18}/>התחברות עם Google</button>}
+  {error&&<p role="alert" className="form-error">{error}</p>}</section></main>;
+}
