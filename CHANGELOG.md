@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Codex — Stage 4: real task management
+- **Summary:** Task screen now supports saved creation/editing, due date/time, completion, soft delete, search and open/today/overdue/completed filters. Added shared authenticated data provider and accessible editor dialogs.
+- **Files touched:** components/life/{use-life,editor,tasks}.tsx, components/life/auth-gate.tsx, app/page.tsx, app/globals.css.
+- **Open items / notes for the next AI:** Browser-tested local login and task creation. Typecheck passed. Stage 2/3 deployment run 6 succeeded. Home still uses mock sections until stage 8 replaces it with these shared live modules.
+
+
 ### 2026-09-11 — Codex — Stage 3: persistent records and recovery API
 - **Summary:** Added validated D1 records with per-record optimistic concurrency, soft deletion, authenticated export and additive import. No browser storage is authoritative. All data endpoints reject unauthenticated access and cross-origin writes.
 - **Files touched:** lib/life-model.ts, lib/life-store.ts, app/api/records, app/api/export, app/api/import, db/schema.ts, drizzle/, package.json.

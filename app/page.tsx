@@ -1,5 +1,7 @@
 'use client';
 
+import {LifeProvider} from '@/components/life/use-life';
+import {TasksView} from '@/components/life/tasks';
 import { AuthGate } from '@/components/life/auth-gate';
 import { type SyntheticEvent, useEffect, useState } from 'react';
 import {
@@ -98,7 +100,7 @@ const navItems = [
   { id: 'timeline' as View, label: 'ציר הזמן', icon: Timeline },
 ];
 
-export default function HomePage() { return <AuthGate><Dashboard /></AuthGate>; }
+export default function HomePage() { return <AuthGate><LifeProvider><Dashboard /></LifeProvider></AuthGate>; }
 function Dashboard() {
   const [view, setView] = useState<View>('today');
   const [tasks, setTasks] = useState(seedTasks);
@@ -281,11 +283,7 @@ function Dashboard() {
             <Finance onNewExpense={() => setExpenseComposer(true)} />
           )}
           {view === 'tasks' && (
-            <Tasks
-              tasks={tasks}
-              onToggle={toggleTask}
-              onNew={() => setTaskComposer(true)}
-            />
+            <TasksView />
           )}
           {view === 'habits' && (
             <Habits habits={habits} onToggle={toggleHabit} />
