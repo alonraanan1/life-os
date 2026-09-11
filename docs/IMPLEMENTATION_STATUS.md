@@ -7,7 +7,7 @@ User authorized all stages and checkpoint publishing after each stage. Earlier m
 - [x] 3. D1 persistence, export and recovery.
 - [x] 4. Task CRUD, dates, completion and filters.
 - [x] 5. Habit schedules, dated history and streaks.
-- [ ] 6. Income, expenses, categories and budgets; Shortcuts intake.
+- [x] 6. Income, expenses, categories and budgets; Shortcuts intake.
 - [ ] 7. Goals and daily check-ins.
 - [ ] 8. Live dashboard, responsive polish and end-to-end QA.
 

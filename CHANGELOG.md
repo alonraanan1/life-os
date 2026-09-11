@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Codex — Stage 6: finance and Shortcuts intake
+- **Summary:** Added persistent income/expense CRUD, custom category entry/filtering, monthly budgets and calculated totals/breakdown. Money is stored in integer agorot. Replaced the dormant Supabase intake with authenticated D1 intake and idempotent externalId handling.
+- **Files touched:** components/life/finance.tsx, app/api/expense/route.ts, app/page.tsx, app/globals.css, docs/SHORTCUTS.md.
+- **Open items / notes for the next AI:** APPLE_SHORTCUTS_API_KEY configured as Worker secret; owner copy is ignored .env.shortcuts.txt. User still installs the iPhone shortcut; instructions in docs/SHORTCUTS.md. Input amount is ILS, converted to agorot. Account must be activated before shortcut writes. Typecheck/build passed.
+
+
 ### 2026-09-11 — Codex — Stage 5: habit schedules and dated history
 - **Summary:** Habit CRUD, chosen weekdays/start date, daily toggle and seven-day history now persist to D1. Streaks count scheduled days, exclude deleted entries and allow today to be pending. Future entries are rejected server-side.
 - **Files touched:** components/life/habits.tsx, app/page.tsx, app/globals.css, tests/model.test.mjs, package.json.

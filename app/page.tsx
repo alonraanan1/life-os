@@ -1,6 +1,7 @@
 'use client';
 
 import {LifeProvider} from '@/components/life/use-life';
+import {FinanceView} from '@/components/life/finance';
 import {HabitsView} from '@/components/life/habits';
 import {TasksView} from '@/components/life/tasks';
 import { AuthGate } from '@/components/life/auth-gate';
@@ -281,7 +282,7 @@ function Dashboard() {
             />
           )}
           {view === 'finance' && (
-            <Finance onNewExpense={() => setExpenseComposer(true)} />
+            <FinanceView />
           )}
           {view === 'tasks' && (
             <TasksView />
