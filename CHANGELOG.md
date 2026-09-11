@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Codex — Stage 5: habit schedules and dated history
+- **Summary:** Habit CRUD, chosen weekdays/start date, daily toggle and seven-day history now persist to D1. Streaks count scheduled days, exclude deleted entries and allow today to be pending. Future entries are rejected server-side.
+- **Files touched:** components/life/habits.tsx, app/page.tsx, app/globals.css, tests/model.test.mjs, package.json.
+- **Open items / notes for the next AI:** Three domain tests cover streak gaps/weekends, Israel timezone and invalid dates/money. Tasks/habits live modules will replace remaining mock home sections at stage 8.
+
+
 ### 2026-09-11 — Codex — Stage 4: real task management
 - **Summary:** Task screen now supports saved creation/editing, due date/time, completion, soft delete, search and open/today/overdue/completed filters. Added shared authenticated data provider and accessible editor dialogs.
 - **Files touched:** components/life/{use-life,editor,tasks}.tsx, components/life/auth-gate.tsx, app/page.tsx, app/globals.css.

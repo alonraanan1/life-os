@@ -1,6 +1,7 @@
 'use client';
 
 import {LifeProvider} from '@/components/life/use-life';
+import {HabitsView} from '@/components/life/habits';
 import {TasksView} from '@/components/life/tasks';
 import { AuthGate } from '@/components/life/auth-gate';
 import { type SyntheticEvent, useEffect, useState } from 'react';
@@ -286,7 +287,7 @@ function Dashboard() {
             <TasksView />
           )}
           {view === 'habits' && (
-            <Habits habits={habits} onToggle={toggleHabit} />
+            <HabitsView />
           )}
           {view === 'goals' && (
             <Goals onUpdate={() => toast('התקדמות המטרה עודכנה')} />
