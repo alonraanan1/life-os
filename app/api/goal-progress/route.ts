@@ -1,6 +1,6 @@
 import {json} from '@/lib/auth';
 import {validate} from '@/lib/life-model';
-import {authorized,database,findByTitle,readBody,titlesOf,upsert} from '@/lib/shortcuts';
+import {authorized,database,findByTitle,num,readBody,titlesOf,upsert} from '@/lib/shortcuts';
 
 export async function GET(request:Request){
   if(!await authorized(request))return json({error:'unauthorized'},401);
@@ -14,7 +14,7 @@ export async function POST(request:Request){
     const input=await readBody(request);
     const goal=await findByTitle('goal',input.title);
     if(!goal)return json({error:'goal_not_found'},404);
-    const data=validate('goal',{title:goal.data.title,target:goal.data.target,unit:goal.data.unit,date:goal.data.date,current:input.current});
+    const data=validate('goal',{title:goal.data.title,target:goal.data.target,unit:goal.data.unit,date:goal.data.date,current:num(input.current)});
     await upsert(database(),goal.id,'goal',data,goal.version);
     const pct=Math.min(100,Math.round(data.current/data.target*100));
     return json({ok:true,goal:data.title,current:data.current,target:data.target,pct});

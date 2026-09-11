@@ -16,6 +16,11 @@ export async function readBody(request:Request,maxLen=10000):Promise<Record<stri
   return input as Record<string,unknown>;
 }
 
+export function num(v:unknown):unknown{
+  if(typeof v==='string'&&v.trim()!==''&&Number.isFinite(Number(v)))return Number(v);
+  return v;
+}
+
 export function externalRecordId(externalId:unknown):Promise<string>|string{
   if(externalId===undefined)return crypto.randomUUID();
   if(typeof externalId!=='string'||externalId.length>200)throw new Error('invalid_external_id');

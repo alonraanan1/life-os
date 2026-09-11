@@ -1,14 +1,14 @@
 import {json} from '@/lib/auth';
 import {todayKey,validate} from '@/lib/life-model';
 import {oneRecord} from '@/lib/life-store';
-import {authorized,database,readBody,upsert} from '@/lib/shortcuts';
+import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
 
 export async function POST(request:Request){
   if(!await authorized(request))return json({error:'unauthorized'},401);
   try{
     const input=await readBody(request);
     const day=typeof input.date==='string'&&input.date?input.date:todayKey();
-    const data=validate('checkin',{date:day,mood:input.mood,note:typeof input.note==='string'?input.note:''});
+    const data=validate('checkin',{date:day,mood:num(input.mood),note:typeof input.note==='string'?input.note:''});
     const id='checkin:'+day;
     const existing=await oneRecord(id);
     await upsert(database(),id,'checkin',data,existing?.version);
