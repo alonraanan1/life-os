@@ -48,7 +48,7 @@ function Dashboard(){
     return()=>life.abort();
   },[]);
 
-  return <div dir="rtl" className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] selection:bg-[#cce4ff]">
+  return <div dir="rtl" className="min-h-screen selection:bg-[var(--brand-tint-strong)]">
     <div className="app-shell">
       <Sidebar view={view} onNavigate={go}/>
       <main id="main-content" className="app-main">
@@ -75,17 +75,17 @@ function Sidebar({view,onNavigate}:{view:View;onNavigate:(next:View)=>void}){
       {[...navItems,dataNav].map(({id,label,icon:Icon})=>
         <button key={id} onClick={()=>onNavigate(id)} aria-current={view===id?'page':undefined} className={`nav-item ${view===id?'active':''}`}><Icon/>{label}</button>)}
     </nav>
-    <div className="mt-auto border-t border-[#dcd9d1] px-3 pt-5">
-      <p className="text-xs font-bold text-[#46635b]">טיפ יומי</p>
-      <p className="mt-2 text-sm leading-6 text-[#65736e]">עדכון קטן בכל יום הופך את התמונה הגדולה לברורה.</p>
+    <div className="mt-auto border-t border-[var(--stroke)] px-3 pt-5">
+      <p className="text-xs font-bold text-[var(--gold)]">טיפ יומי</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">עדכון קטן בכל יום הופך את התמונה הגדולה לברורה.</p>
     </div>
   </aside>;
 }
 
 function Brand(){
   return <div className="mb-10 flex items-center gap-3 px-3">
-    <div className="grid size-10 place-items-center rounded-xl bg-[#007aff] text-lg font-semibold text-white">L</div>
-    <div><p className="text-lg font-semibold">Life OS</p><p className="text-xs text-[#71807c]">הכל במקום אחד</p></div>
+    <div className="grid size-10 place-items-center rounded-xl bg-[var(--brand)] text-lg font-semibold text-[var(--brand-ink)]">L</div>
+    <div><p className="text-lg font-semibold">Life OS</p><p className="text-xs text-[var(--text-2)]">הכל במקום אחד</p></div>
   </div>;
 }
 
@@ -101,10 +101,10 @@ function AppHeader({view,name,dateLabel,greeting,onProfile}:{view:View;name:stri
   const initials=name?name.trim().slice(0,2):'';
   return <header className="app-header">
     <div>
-      <p className="mb-1 text-xs font-semibold text-[#7c8985]">{dateLabel||' '}</p>
+      <p className="mb-1 text-xs font-semibold text-[var(--text-3)]">{dateLabel||' '}</p>
       <h1 className="page-heading">{heading}</h1>
     </div>
-    <button onClick={onProfile} aria-label="הנתונים והפרופיל שלי" className="grid size-11 place-items-center rounded-full bg-[#e5e5ea] text-sm font-semibold ring-4 ring-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#007aff]">
+    <button onClick={onProfile} aria-label="הנתונים והפרופיל שלי" className="grid size-11 place-items-center rounded-full bg-[var(--surface-2)] border border-[var(--stroke)] text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
       {initials||<span aria-hidden="true">☰</span>}
     </button>
   </header>;

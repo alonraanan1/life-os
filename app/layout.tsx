@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { Noto_Sans_Hebrew } from 'next/font/google';
+import { Heebo } from 'next/font/google';
 import './globals.css';
 
-const noto = Noto_Sans_Hebrew({ variable: '--font-hebrew', subsets: ['hebrew'] });
+const noto = Heebo({ variable: '--font-hebrew', subsets: ['hebrew'], weight: ['300','400','500','600','700','800'] });
 export const metadata: Metadata = {
   metadataBase: new URL('https://life-os-personal.arielra230.chatgpt.site'),
   title: 'Life OS — הבית של החיים שלך',
