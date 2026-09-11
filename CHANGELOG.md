@@ -19,6 +19,26 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Claude (Cowork), session 6 — Stage 8: the last mock data is gone
+- **Summary:** Replaced the seeded home screen and timeline with live D1 data, split the page shell into real modules, and exposed backup, restore, trash and logout. The checklist in `docs/IMPLEMENTATION_STATUS.md` is now fully ticked.
+- **Files touched:** `app/page.tsx` (rewritten as a thin shell), `app/globals.css`, `components/life/today.tsx` (new), `components/life/timeline.tsx` (new), `components/life/data.tsx` (new), `components/life/nav.ts` (new), `.github/workflows/check.yml`, `docs/IMPLEMENTATION_STATUS.md`.
+- **Open items / notes for the next AI:**
+  - **No seed data is left anywhere.** `seedTasks`, `seedHabits`, `seedActivity` and every mock component (`Today`, `BudgetHero`, `Finance`, `Tasks`, `Habits`, `Goals`, `TimelineView`, `TaskList`, `HabitGrid`, `GoalCard`, `ActivityList`, `Composer`, `Quick`, `EmptyState`) were deleted along with the local-state composers that lost their data on refresh. `app/page.tsx` is now only routing, header, sidebar and mobile nav; every screen is a module under `components/life/`.
+  - **Home** (`today.tsx`) is composed from the existing `compact` modules Codex built, plus four live summary cards (open tasks with an overdue count, habits marked today, spend today, today's check-in) and the four most recent timeline moments. Every number is derived from records, none are stored.
+  - **Timeline** (`timeline.tsx`) derives one feed from transactions, completed tasks, habit marks, check-ins and reached goals, grouped by day with היום/אתמול labels and filters. `buildFeed()` is exported and reused on the home screen — keep it the single source for activity.
+  - **`data.tsx` is the new seventh screen** (reachable from the sidebar and the header avatar): backup download via `GET /api/export`, restore via `POST /api/import` with a 2MB guard, per-kind record counts, a trash list of soft-deleted records with one-click restore, the display name (`settings` record), and logout via `DELETE /api/auth` followed by a reload so nothing stays in memory.
+  - **The greeting is no longer hardcoded.** It is time-of-day based and uses the `settings.name` record, editable in the new screen; the avatar shows those initials. The old placeholder name is gone. If no name is set the app simply greets without one.
+  - **The shell now shows loading and error states.** `useLife().error` was previously invisible, so a failed refresh looked like an empty app; it now renders a retry banner, and first load shows a status line instead of empty states.
+  - **CI now gates on more than the build:** `check.yml` runs `npm run typecheck` and `npm run test` before `npm run build`.
+  - **Verified before pushing:** `npm run typecheck`, `npm run lint` (no new findings; the pre-existing `components/ui/*` and `hooks/use-mobile.ts` findings are untouched), `npm test` (3/3) and `npm run build` all pass. Local `wrangler dev` end-to-end runs were attempted too but the sandbox worker restarted mid-request, so runtime checks beyond anonymous-401, cross-origin-403 and the Shortcuts-key guard were not completed — worth a manual pass on the live site after this deploys.
+  - **Still open:** the production owner account activation is the user's to do (the AI must not choose the password), and the CI Cloudflare token still has no D1 permission, so schema migrations continue to need `npm run db:migrate:remote` from an authenticated local CLI before a deploy that changes the schema. This change adds no migration.
+
+### 2026-09-11 — Codex — Stage 7: goals and check-ins
+- **Summary:** Persistent goal creation/editing/progress/deletion, numeric targets/units/deadlines, and dated mood/notes check-ins. One check-in per calendar date; future entries are rejected.
+- **Files touched:** components/life/goals.tsx, app/page.tsx, app/globals.css.
+- **Open items / notes for the next AI:** Typecheck/build passed. Stage 8 must remove the last seeded home/timeline views, expose backup/trash/logout and verify full end-to-end behavior.
+
+
 ### 2026-09-11 — Codex — Stage 6: finance and Shortcuts intake
 - **Summary:** Added persistent income/expense CRUD, custom category entry/filtering, monthly budgets and calculated totals/breakdown. Money is stored in integer agorot. Replaced the dormant Supabase intake with authenticated D1 intake and idempotent externalId handling.
 - **Files touched:** components/life/finance.tsx, app/api/expense/route.ts, app/page.tsx, app/globals.css, docs/SHORTCUTS.md.
