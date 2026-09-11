@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="he" dir="rtl"><body className={`${noto.variable} antialiased`}>{children}</body></html>;
+  return <html lang="he" dir="rtl" className={noto.variable}><body className="antialiased">{children}</body></html>;
 }
