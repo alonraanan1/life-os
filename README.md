@@ -45,4 +45,6 @@ See `DESIGN.md` for the visual design system, and `docs/api.md` for the API refe
 ## Git remotes
 
 - `sites` — the original remote, pointing at OpenAI's ChatGPT Sites hosting. Push here to redeploy through ChatGPT.
-- `origin` (GitHub) — not set up yet. See `docs/GITHUB_SETUP.md` for how to create a GitHub repo and add it as a neutral remote that any AI tool can clone, read, and push to, independent of ChatGPT.
+- `origin` — https://github.com/alonraanan1/life-os — canonical shared source. Pushes to main deploy to https://sites-project.alonraanan1.workers.dev. Work on branches for unfinished changes; pull requests run build checks.
+
+Read `docs/IMPLEMENTATION_STATUS.md` for the current handoff and pending stages.

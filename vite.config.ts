@@ -19,8 +19,14 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: 'site-creator-d1',
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          // Falls back to the OpenAI/Codex control-plane placeholder so that
+          // flow is unaffected; set CLOUDFLARE_D1_DATABASE_ID (e.g. from
+          // `wrangler d1 create ...`) to deploy independently to your own
+          // Cloudflare account instead. See docs/CLOUDFLARE_DEPLOY.md.
+          database_name: process.env.CLOUDFLARE_D1_DATABASE_NAME ?? 'site-creator-d1',
+          database_id:
+            process.env.CLOUDFLARE_D1_DATABASE_ID ??
+            SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
     : [],
