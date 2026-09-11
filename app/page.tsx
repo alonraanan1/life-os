@@ -224,13 +224,13 @@ export default function HomePage() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-[#f4f2ec] text-[#18211f] selection:bg-[#b7dfd2]"
+      className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f] selection:bg-[#cce4ff]"
     >
-      <div className="mx-auto min-h-screen max-w-[1180px] lg:grid lg:grid-cols-[240px_1fr] lg:gap-8 lg:px-7">
+      <div className="app-shell">
         <Sidebar view={view} onNavigate={go} />
         <main
           id="main-content"
-          className="min-w-0 px-4 pb-28 pt-5 sm:px-7 lg:px-0 lg:pb-12 lg:pt-7"
+          className="app-main"
         >
           <AppHeader
             view={view}
@@ -349,7 +349,7 @@ export default function HomePage() {
         {notice && (
           <output
             aria-live="polite"
-            className="fixed bottom-24 left-1/2 z-[70] -translate-x-1/2 whitespace-nowrap rounded-xl bg-[#18211f] px-5 py-3 text-sm font-bold text-white shadow-xl lg:bottom-8"
+            className="fixed bottom-24 left-1/2 z-[70] -translate-x-1/2 whitespace-nowrap rounded-xl bg-[#1d1d1f] px-5 py-3 text-sm font-bold text-white shadow-xl lg:bottom-8"
           >
             {notice}
           </output>
@@ -367,7 +367,7 @@ function Sidebar({
   onNavigate: (v: View) => void;
 }) {
   return (
-    <aside className="hidden py-7 lg:flex lg:flex-col">
+    <aside className="app-sidebar">
       <Brand />
       <nav className="space-y-1" aria-label="ניווט ראשי">
         {navItems.map(({ id, label, icon: Icon }) => (
@@ -394,11 +394,11 @@ function Sidebar({
 function Brand() {
   return (
     <div className="mb-10 flex items-center gap-3 px-3">
-      <div className="grid size-10 place-items-center rounded-xl bg-[#173f3a] text-lg font-black text-white">
+      <div className="grid size-10 place-items-center rounded-xl bg-[#007aff] text-lg font-semibold text-white">
         L
       </div>
       <div>
-        <p className="text-lg font-extrabold">Life OS</p>
+        <p className="text-lg font-semibold">Life OS</p>
         <p className="text-xs text-[#71807c]">הכל במקום אחד</p>
       </div>
     </div>
@@ -413,10 +413,10 @@ function MobileNav({
 }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-around border-t border-black/5 bg-[#fcfbf8]/95 px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_24px_rgba(30,40,37,.06)] backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-full items-center justify-around border-t border-black/5 bg-[#fafafa]/95 px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_24px_rgba(30,40,37,.06)] backdrop-blur-xl lg:hidden"
       aria-label="ניווט נייד"
     >
-      {navItems.slice(0, 5).map(({ id, label, icon: Icon }) => (
+      {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           onClick={() => onNavigate(id)}
@@ -442,19 +442,19 @@ function AppHeader({ view, onProfile }: { view: View; onProfile: () => void }) {
     timeline: 'ציר הזמן',
   };
   return (
-    <header className="mb-7 flex items-center justify-between">
+    <header className="app-header">
       <div>
         <p className="mb-1 text-xs font-semibold text-[#7c8985]">
           יום שישי, 11 בספטמבר
         </p>
-        <h1 className="text-[26px] font-black tracking-[-.04em] sm:text-3xl">
+        <h1 className="page-heading">
           {title[view]}
         </h1>
       </div>
       <button
         onClick={onProfile}
         aria-label="פתיחת פרופיל"
-        className="grid size-11 place-items-center rounded-full bg-[#e0c4a4] text-sm font-extrabold ring-4 ring-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#477d70]"
+        className="grid size-11 place-items-center rounded-full bg-[#e5e5ea] text-sm font-semibold ring-4 ring-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#007aff]"
       >
         דנ
       </button>
@@ -490,7 +490,7 @@ function Today({
   return (
     <>
       <BudgetHero />
-      <div className="grid gap-7 xl:grid-cols-[1.08fr_.92fr]">
+      <div className="overview-grid">
         <div className="space-y-7">
           <section className="panel">
             <SectionTitle
@@ -503,7 +503,7 @@ function Today({
             <Button
               onClick={onNewTask}
               variant="ghost"
-              className="mt-3 h-10 w-full justify-start rounded-xl text-[#38675d]"
+              className="mt-3 h-10 w-full justify-start rounded-xl text-[#0066cc]"
             >
               <Plus />
               משימה חדשה
@@ -559,19 +559,19 @@ function BudgetHero() {
   return (
     <section
       aria-label="סיכום כספי"
-      className="mb-7 overflow-hidden rounded-[24px] bg-[#173f3a] p-5 text-white shadow-[0_12px_28px_rgba(23,63,58,.14)] sm:p-6"
+      className="budget-summary"
     >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-white/65">נשאר לך החודש</p>
-          <p className="mt-1 text-[34px] font-black">₪3,240</p>
+          <p className="balance-value">₪3,240</p>
         </div>
         <div className="rounded-xl bg-white/10 p-3">
           <WalletCards className="size-6" />
         </div>
       </div>
       <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/15">
-        <div className="h-full w-[57%] rounded-full bg-[#c5e96f]" />
+        <div className="h-full w-[57%] rounded-full bg-[#64d2ff]" />
       </div>
       <div className="mt-3 flex justify-between text-xs text-white/65">
         <span>נוצלו ₪4,260</span>
@@ -596,7 +596,7 @@ function Metric({
   return (
     <div className={divided ? 'border-r border-white/10 pr-4' : ''}>
       <p className="text-xs text-white/55">{label}</p>
-      <p className="mt-1 text-lg font-extrabold">{value}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   );
 }
@@ -639,7 +639,7 @@ function Finance({ onNewExpense }: { onNewExpense: () => void }) {
                 </div>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#deded8]">
                   <div
-                    className="h-full rounded-full bg-[#5f9b89]"
+                    className="h-full rounded-full bg-[#007aff]"
                     style={{ width: pct }}
                   />
                 </div>
@@ -752,7 +752,7 @@ function Habits({
               className="flex flex-1 flex-col items-center gap-2"
             >
               <div
-                className="w-full max-w-9 rounded-t-md bg-[#7baa9d]"
+                className="w-full max-w-9 rounded-t-md bg-[#007aff]"
                 style={{ height: `${Number(n) * 22}px` }}
               />
               <span className="text-xs text-[#79847f]">{day}</span>
@@ -882,7 +882,7 @@ function HabitGrid({
   onToggle: (id: string) => void;
 }) {
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="habit-grid">
       {habits.map((h) => (
         <button
           key={h.id}
@@ -891,13 +891,13 @@ function HabitGrid({
           className={`habit ${h.done ? 'active' : ''}`}
         >
           <span className="text-2xl">{h.emoji}</span>
-          <span className="mt-2 text-xs font-extrabold">{h.title}</span>
-          <span className="mt-1 flex items-center gap-1 text-[11px] text-[#6f7c77]">
+          <span className="mt-2 text-xs font-semibold">{h.title}</span>
+          <span className="mt-1 flex items-center gap-1 text-xs text-[#6f7c77]">
             <Flame className="size-3 text-[#d77c3d]" />
             {h.streak} ימים
           </span>
           {h.done && (
-            <span className="absolute left-2 top-2 grid size-5 place-items-center rounded-full bg-[#173f3a] text-white">
+            <span className="absolute left-2 top-2 grid size-5 place-items-center rounded-full bg-[#007aff] text-white">
               <Check className="size-3" />
             </span>
           )}
@@ -914,21 +914,21 @@ function GoalCard() {
           <p>המטרה החודשית</p>
           <span>קרן חופשה ביוון</span>
         </div>
-        <b className="text-sm text-[#b36427]">68%</b>
+        <b className="text-sm text-[#a65b00]">68%</b>
       </div>
       <div className="mt-5 flex items-center gap-4">
         <div
           className="grid size-20 shrink-0 place-items-center rounded-full"
-          style={{ background: 'conic-gradient(#e8a158 68%,#eeeae1 0)' }}
+          style={{ background: 'conic-gradient(#ff9500 68%,#f2f2f7 0)' }}
         >
           <div className="grid size-16 place-items-center rounded-full bg-white">
-            <Target className="size-6 text-[#d4843f]" />
+            <Target className="size-6 text-[#c76b00]" />
           </div>
         </div>
         <div>
-          <p className="text-xl font-black">₪3,400</p>
+          <p className="text-xl font-semibold">₪3,400</p>
           <p className="mt-1 text-xs text-[#6f7b77]">מתוך יעד של ₪5,000</p>
-          <p className="mt-3 flex items-center gap-1 text-xs font-bold text-[#3f7568]">
+          <p className="mt-3 flex items-center gap-1 text-xs font-bold text-[#248a3d]">
             <ArrowUpLeft className="size-4" />
             נשארו ₪1,600
           </p>
@@ -953,11 +953,11 @@ function GoalRow({
           <b className="text-sm">{title}</b>
           <p className="mt-1 text-xs text-[#75807c]">{detail}</p>
         </div>
-        <b className="text-sm text-[#3f7568]">{pct}%</b>
+        <b className="text-sm text-[#248a3d]">{pct}%</b>
       </div>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#deded8]">
         <div
-          className="h-full rounded-full bg-[#5f9b89]"
+          className="h-full rounded-full bg-[#007aff]"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -985,7 +985,7 @@ function ActivityList({ activity }: { activity: Activity[] }) {
               <p className="truncate text-sm font-bold">{item.title}</p>
               <p className="mt-1 text-xs text-[#77827e]">{item.detail}</p>
             </div>
-            <span className="text-xs font-extrabold">{item.value}</span>
+            <span className="text-xs font-semibold">{item.value}</span>
           </div>
         );
       })}
@@ -1034,9 +1034,9 @@ function Quick({
   return (
     <button
       onClick={onClick}
-      className={`quick ${warm ? 'bg-[#f5dfc7]' : 'bg-[#dcebe5]'}`}
+      className={`quick ${warm ? 'bg-[#fff4e8]' : 'bg-[#edf5ff]'}`}
     >
-      <span className={`quick-icon ${warm ? 'bg-[#d8914d]' : 'bg-[#5f9b89]'}`}>
+      <span className={`quick-icon ${warm ? 'bg-[#ff9500]' : 'bg-[#007aff]'}`}>
         <Icon />
       </span>
       <span>
@@ -1061,10 +1061,10 @@ function Composer({
         open
         aria-modal="true"
         aria-label={title}
-        className="w-full rounded-t-[24px] bg-[#f8f7f2] p-5 shadow-2xl sm:max-w-md sm:rounded-[20px]"
+        className="w-full rounded-t-[24px] bg-[#ffffff] p-5 shadow-2xl sm:max-w-md sm:rounded-[20px]"
       >
         <header className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-black">{title}</h2>
+          <h2 className="text-lg font-semibold">{title}</h2>
           <button
             onClick={onClose}
             aria-label="סגירה"
