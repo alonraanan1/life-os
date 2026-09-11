@@ -1,0 +1,12 @@
+{
+  "name": "life-os-database",
+  "compatibility_date": "2026-09-11",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "life-os",
+      "database_id": "523ae7e1-5dbf-4719-9341-1a1a1128c9ee",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}

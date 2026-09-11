@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Codex — Stage 2: private login and D1 foundation
+- **Summary:** Created owner Cloudflare D1 database life-os; added single-owner activation and password login, hashed opaque sessions, same-origin writes and rate limits. Expense intake now denies requests without configured bearer key. Bootstrap code is in ignored local .env.activation.txt and Cloudflare LIFE_SETUP_TOKEN secret; never commit it.
+- **Files touched:** lib/auth.ts, app/api/auth/route.ts, components/life/auth-gate.tsx, app/page.tsx, app/globals.css, db/schema.ts, drizzle/, wrangler.database.json, vite.config.ts, package.json, .openai/hosting.json, .gitignore.
+- **Open items / notes for the next AI:** Production owner has NOT been activated by the AI; user must choose password. Local-only test account was created. D1 is canonical (ID in wrangler.database.json is non-secret); legacy tables retained. Auth and origin checks passed locally. Stage 3 will replace mock state with validated per-record persistence. Password reset requires authenticated admin CLI (document before completion). Cloudflare and Sites deployments would have distinct D1 stores; only publish Cloudflare canonical site.
+
+
 ### 2026-09-11 — Codex — Stage 1: shared workflow synchronized
 - **Summary:** Fast-forwarded local main to GitHub b4176e2; preserved Claude session 5 notes and D1 environment support. User now authorizes real persistence and all eight implementation stages, superseding the earlier mockup-only restriction. Publish a tested checkpoint after each stage.
 - **Files touched:** CHANGELOG.md, README.md, docs/IMPLEMENTATION_STATUS.md, .github/workflows/check.yml; preserved Claude changes to vite.config.ts.

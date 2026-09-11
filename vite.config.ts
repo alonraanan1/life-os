@@ -3,9 +3,8 @@ import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 import hostingConfig from './.openai/hosting.json';
+import databaseConfig from './wrangler.database.json';
 
-const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  '00000000-0000-4000-8000-000000000000';
 
 const { d1, r2 } = hostingConfig;
 
@@ -23,10 +22,10 @@ const localBindingConfig = {
           // flow is unaffected; set CLOUDFLARE_D1_DATABASE_ID (e.g. from
           // `wrangler d1 create ...`) to deploy independently to your own
           // Cloudflare account instead. See docs/CLOUDFLARE_DEPLOY.md.
-          database_name: process.env.CLOUDFLARE_D1_DATABASE_NAME ?? 'site-creator-d1',
+          database_name: process.env.CLOUDFLARE_D1_DATABASE_NAME ?? databaseConfig.d1_databases[0].database_name,
           database_id:
             process.env.CLOUDFLARE_D1_DATABASE_ID ??
-            SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+            databaseConfig.d1_databases[0].database_id,
         },
       ]
     : [],

@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthGate } from '@/components/life/auth-gate';
 import { type SyntheticEvent, useEffect, useState } from 'react';
 import {
   ArrowDownLeft,
@@ -97,7 +98,8 @@ const navItems = [
   { id: 'timeline' as View, label: 'ציר הזמן', icon: Timeline },
 ];
 
-export default function HomePage() {
+export default function HomePage() { return <AuthGate><Dashboard /></AuthGate>; }
+function Dashboard() {
   const [view, setView] = useState<View>('today');
   const [tasks, setTasks] = useState(seedTasks);
   const [habits, setHabits] = useState(seedHabits);

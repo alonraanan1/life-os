@@ -9,3 +9,7 @@ export const habits=sqliteTable('habits',{id:text('id').primaryKey(),profileId:t
 export const habitEntries=sqliteTable('habit_entries',{id:text('id').primaryKey(),habitId:text('habit_id').notNull().references(()=>habits.id),entryDate:text('entry_date').notNull(),value:integer('value').notNull().default(1),...timestamps});
 export const goals=sqliteTable('goals',{id:text('id').primaryKey(),profileId:text('profile_id').notNull().references(()=>profiles.id),title:text('title').notNull(),kind:text('kind').notNull().default('monthly'),targetValue:real('target_value').notNull(),currentValue:real('current_value').notNull().default(0),targetDate:text('target_date'),...timestamps});
 export const checkIns=sqliteTable('check_ins',{id:text('id').primaryKey(),profileId:text('profile_id').notNull().references(()=>profiles.id),mood:integer('mood'),note:text('note'),occurredAt:text('occurred_at').notNull(),...timestamps});
+
+export const lifeOwner=sqliteTable("life_owner",{id:integer("id").primaryKey(),passwordHash:text("password_hash").notNull(),salt:text("salt").notNull(),createdAt:text("created_at").notNull()});
+export const lifeSessions=sqliteTable("life_sessions",{id:text("id").primaryKey(),expiresAt:integer("expires_at").notNull()});
+export const lifeAttempts=sqliteTable("life_attempts",{id:text("id").primaryKey(),count:integer("count").notNull(),expiresAt:integer("expires_at").notNull()});

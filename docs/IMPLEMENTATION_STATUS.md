@@ -3,7 +3,7 @@
 User authorized all stages and checkpoint publishing after each stage. Earlier mockup-only direction is superseded.
 
 - [x] 1. Synchronize GitHub and local changes; PR build checks.
-- [ ] 2. Owner-only authentication and API protection.
+- [x] 2. Owner-only authentication and API protection.
 - [ ] 3. D1 persistence, export and recovery.
 - [ ] 4. Task CRUD, dates, completion and filters.
 - [ ] 5. Habit schedules, dated history and streaks.
