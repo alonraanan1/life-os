@@ -105,8 +105,19 @@ export default function HomePage() {
   const [notice, setNotice] = useState('');
   const [taskComposer, setTaskComposer] = useState(false);
   const [expenseComposer, setExpenseComposer] = useState(false);
+  const [today, setToday] = useState('');
   const completed = tasks.filter((x) => x.done).length;
   const habitDone = habits.filter((x) => x.done).length;
+
+  useEffect(() => {
+    setToday(
+      new Intl.DateTimeFormat('he-IL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }).format(new Date()),
+    );
+  }, []);
 
   const go = (next: View) => {
     setView(next);
@@ -234,6 +245,7 @@ export default function HomePage() {
         >
           <AppHeader
             view={view}
+            dateLabel={today}
             onProfile={() => toast('הפרופיל שלך מעודכן')}
           />
           {view === 'today' && (
@@ -432,9 +444,17 @@ function MobileNav({
     </nav>
   );
 }
-function AppHeader({ view, onProfile }: { view: View; onProfile: () => void }) {
+function AppHeader({
+  view,
+  dateLabel,
+  onProfile,
+}: {
+  view: View;
+  dateLabel: string;
+  onProfile: () => void;
+}) {
   const title: Record<View, string> = {
-    today: 'בוקר טוב, דניאל',
+    today: 'בוקר טוב, אלון',
     finance: 'הכספים שלי',
     tasks: 'המשימות שלי',
     habits: 'ההרגלים שלי',
@@ -445,7 +465,7 @@ function AppHeader({ view, onProfile }: { view: View; onProfile: () => void }) {
     <header className="app-header">
       <div>
         <p className="mb-1 text-xs font-semibold text-[#7c8985]">
-          יום שישי, 11 בספטמבר
+          {dateLabel || ' '}
         </p>
         <h1 className="page-heading">
           {title[view]}
@@ -456,7 +476,7 @@ function AppHeader({ view, onProfile }: { view: View; onProfile: () => void }) {
         aria-label="פתיחת פרופיל"
         className="grid size-11 place-items-center rounded-full bg-[#e5e5ea] text-sm font-semibold ring-4 ring-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#007aff]"
       >
-        דנ
+        אל
       </button>
     </header>
   );
