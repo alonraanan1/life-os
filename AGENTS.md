@@ -131,3 +131,15 @@ The goal is to make it:
 - and easy to use.
 
 When uncertain, simplify.
+
+## Multi-AI Change Log
+
+This project is edited by more than one AI assistant over time (Claude, ChatGPT/Codex, Cursor, GitHub Copilot, or others), often in separate sessions that share no memory of each other.
+
+To keep hand-offs smooth:
+
+1. **Before starting work**, read `CHANGELOG.md` (most recent entries first) to see what the last AI session did and any open items it left behind.
+2. **After finishing a change**, add a new entry at the top of the "Entries" section in `CHANGELOG.md`, following the template already in that file. Never edit or remove older entries.
+3. If you made a non-obvious architectural, data, or design decision, note it in the changelog entry so the next AI doesn't silently reverse it.
+
+This is in addition to, not a replacement for, the design rules above.
