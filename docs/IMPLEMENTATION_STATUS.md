@@ -14,3 +14,7 @@ All eight stages are complete. Sign-in is Google-only (single allowed account); 
 Canonical site: https://sites-project.alonraanan1.workers.dev
 Canonical repository: https://github.com/alonraanan1/life-os
 Preserve existing uncommitted work. Update this file and append CHANGELOG entries at each checkpoint. Never commit secrets or production exports.
+
+## Post-launch: visual redesign (2026-09-11)
+
+The app shipped a full visual redesign after the 8 stages above were already done: dark-by-default true-black theme, translucent glass panels, Heebo typeface, emerald/gold accent palette, Activity-style ring for goal progress. See the CHANGELOG entry "design v3 shipped" for details and open items. This was a styling pass only — no data model or API changes.
