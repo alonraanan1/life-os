@@ -13,3 +13,5 @@ export const checkIns=sqliteTable('check_ins',{id:text('id').primaryKey(),profil
 export const lifeOwner=sqliteTable("life_owner",{id:integer("id").primaryKey(),passwordHash:text("password_hash").notNull(),salt:text("salt").notNull(),createdAt:text("created_at").notNull()});
 export const lifeSessions=sqliteTable("life_sessions",{id:text("id").primaryKey(),expiresAt:integer("expires_at").notNull()});
 export const lifeAttempts=sqliteTable("life_attempts",{id:text("id").primaryKey(),count:integer("count").notNull(),expiresAt:integer("expires_at").notNull()});
+
+export const lifeRecords=sqliteTable('life_records',{id:text('id').primaryKey(),kind:text('kind').notNull(),data:text('data').notNull(),version:integer('version').notNull().default(1),createdAt:text('created_at').notNull(),updatedAt:text('updated_at').notNull(),deletedAt:text('deleted_at')});

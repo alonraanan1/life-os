@@ -8,11 +8,14 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "deploy": "npm run build && wrangler d1 migrations apply DB --remote --config wrangler.database.json && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --config wrangler.database.json",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.database.json",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "19.2.6",

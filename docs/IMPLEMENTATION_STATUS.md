@@ -4,7 +4,7 @@ User authorized all stages and checkpoint publishing after each stage. Earlier m
 
 - [x] 1. Synchronize GitHub and local changes; PR build checks.
 - [x] 2. Owner-only authentication and API protection.
-- [ ] 3. D1 persistence, export and recovery.
+- [x] 3. D1 persistence, export and recovery.
 - [ ] 4. Task CRUD, dates, completion and filters.
 - [ ] 5. Habit schedules, dated history and streaks.
 - [ ] 6. Income, expenses, categories and budgets; Shortcuts intake.

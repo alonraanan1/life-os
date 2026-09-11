@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-11 — Codex — Stage 3: persistent records and recovery API
+- **Summary:** Added validated D1 records with per-record optimistic concurrency, soft deletion, authenticated export and additive import. No browser storage is authoritative. All data endpoints reject unauthenticated access and cross-origin writes.
+- **Files touched:** lib/life-model.ts, lib/life-store.ts, app/api/records, app/api/export, app/api/import, db/schema.ts, drizzle/, package.json.
+- **Open items / notes for the next AI:** GitHub Cloudflare token lacks D1 permissions (7403). Keep normal deploy independent of schema migration: apply migrations first with authenticated local CLI using npm run db:migrate:remote, then push. Do not bypass failed migrations. User can optionally add D1 Edit to the CI token later. D1 life_records is the canonical domain store; old schema tables are retained but unused. Local tests passed: create/read/update/delete, stale update 409, export, anonymous 401, cross-origin 403. Import is additive and never overwrites existing IDs. UI wiring follows in stages 4–8.
+
+
 ### 2026-09-11 — Codex — Stage 2: private login and D1 foundation
 - **Summary:** Created owner Cloudflare D1 database life-os; added single-owner activation and password login, hashed opaque sessions, same-origin writes and rate limits. Expense intake now denies requests without configured bearer key. Bootstrap code is in ignored local .env.activation.txt and Cloudflare LIFE_SETUP_TOKEN secret; never commit it.
 - **Files touched:** lib/auth.ts, app/api/auth/route.ts, components/life/auth-gate.tsx, app/page.tsx, app/globals.css, db/schema.ts, drizzle/, wrangler.database.json, vite.config.ts, package.json, .openai/hosting.json, .gitignore.
