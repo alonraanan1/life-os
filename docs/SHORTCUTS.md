@@ -68,11 +68,13 @@ This is the one shortcut that replaces all the others. **GET** returns `{summary
 
 It replies `{ok:true, message}` with a human-readable confirmation, which the shortcut shows. Because the server does the parsing and the state logic, the phone side stays linear — no If/Otherwise branches to maintain.
 
-## Ready-made .shortcut files
+## Why there are no ready-made .shortcut files
 
-Six `.shortcut` files (one per action above, plus a dedicated "הוצאת אבא" shortcut — see below) were generated with the bearer key already embedded and delivered directly to the owner in chat; the menu shortcut still needs to be assembled by hand in the Shortcuts app (Choose from Menu → Run Shortcut per action), since personal automations/menus aren't something that imports from a file.
+Generating `.shortcut` files and handing them over does not work, and cannot be made to work from here. Since iOS 15 Apple requires shortcut files to be **signed** before they can be imported; unsigned property lists are rejected outright. Signing happens either through Apple's iCloud service (only reachable from inside the Shortcuts app, via "Copy iCloud Link") or with the `shortcuts sign` CLI on macOS. With a Windows machine and no Mac, neither path is available, so every generated file is dead on arrival regardless of whether its contents are correct.
 
-"הוצאת אבא" is a stripped-down expense shortcut for a recurring case: charges made on the owner's father's card via Apple Pay. It only asks for the amount — category (`הוצאות אבא`) and description are fixed.
+The shortcuts are therefore built by hand in the Shortcuts app. The `?plain=1` mode on `/api/hub` exists precisely to keep that hand-building short — see the hub section below. If a Mac ever enters the picture, `shortcuts sign -i unsigned.shortcut -o signed.shortcut -m anyone` turns a generated file into an importable one.
+
+"הוצאת אבא" is a stripped-down expense flow for a recurring case: charges made on the owner's father's card via Apple Pay. It only asks for the amount — category (`הוצאות אבא`) and description are fixed.
 
 "הוצאת אבא אוטומטי" is the hands-off version of the same thing, meant to be driven by the **Transaction** personal-automation trigger (iOS 17+). It asks nothing at all: it reads the amount from Shortcut Input and posts it straight through. Set it up on the phone (personal automations can't be imported from a file): Shortcuts → Automation → New → **Transaction** → pick the father's card only → **Run Immediately** (turn off "Ask Before Running") → **Run Shortcut** → "הוצאת אבא אוטומטי", and set that action's Input to the transaction's **Amount** property.
 
@@ -80,8 +82,16 @@ Note on formatting: the amount arriving from Wallet may be currency-formatted (`
 
 ## The "Life OS" hub shortcut
 
-Nine linear actions, no branching: Get Contents of URL (GET /api/hub) → Get Dictionary from Input → Get Value for `menu` → Choose from List → Ask for Input (its prompt is the chosen line itself, so it says what to type) → Get Contents of URL (POST /api/hub with `choice` + `value`) → Get Dictionary from Input → Get Value for `message` → Show Result. Give it a Siri phrase and put it on the Home Screen; it is the single entry point for everything.
+Five actions, built by hand, no branching. `BASE` below is `https://sites-project.alonraanan1.workers.dev/api/hub?plain=1` and `KEY` is the value in `.env.shortcuts.txt`.
 
-The single-purpose shortcuts still work standalone and are worth keeping for the cases where you know exactly what you want without reading a menu (and "הוצאת אבא אוטומטי" must stay, since the Transaction automation calls it directly).
+1. **Get Contents of URL** — `BASE`, method GET, one header `Authorization: Bearer KEY`. With `plain=1` the reply is a bare JSON array, which Shortcuts treats as a list.
+2. **Choose from List** — input is the *Contents of URL* magic variable; prompt "מה קרה?".
+3. **Ask for Input** — type Text, and drag the *Chosen Item* magic variable in as the **prompt**, so the question is the menu line itself and explains what to type.
+4. **Get Contents of URL** — `BASE`, method POST, same Authorization header, Request Body JSON with two text fields: `choice` = *Chosen Item*, `value` = *Provided Input*.
+5. **Show Result** — the *Contents of URL* from step 4; with `plain=1` the reply is the confirmation sentence as bare text.
+
+Give it a Siri phrase and put it on the Home Screen; it is the single entry point for everything.
+
+Two one-off shortcuts are worth building alongside it, both posting to the same hub: a morning "ציון שינה" (Ask for Input → POST with `choice` = `ציון שינה`, `value` = *Provided Input*), and "הוצאת אבא אוטומטי" for the Transaction automation (a single POST with `choice` = `הוצאת אבא`, `value` = *Shortcut Input*).
 
 All actions are idempotent where it matters: expense and task accept an `externalId` to make retries safe; habit-mark, check-in, sleep and goal-progress overwrite the same day/goal, so re-running one after a network hiccup never creates duplicates.
