@@ -8,12 +8,25 @@ export async function authorized(request:Request):Promise<boolean>{
   return equal(request.headers.get('Authorization')||'','Bearer '+token);
 }
 
+// Accepts both a JSON object and a form-encoded body. Shortcuts sends the
+// latter whenever "Request Body" is left on Form, which is easy to miss when
+// building an action by hand — so tolerate it rather than fail on it.
+export function parseBody(raw:string):Record<string,unknown>{
+  const trimmed=raw.trim();
+  if(!trimmed)throw new Error('invalid_body');
+  if(trimmed.startsWith('{')){
+    const input=JSON.parse(trimmed) as unknown;
+    if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('invalid_body');
+    return input as Record<string,unknown>;
+  }
+  if(!trimmed.includes('='))throw new Error('invalid_body');
+  return Object.fromEntries(new URLSearchParams(trimmed).entries());
+}
+
 export async function readBody(request:Request,maxLen=10000):Promise<Record<string,unknown>>{
   const raw=await request.text();
   if(raw.length>maxLen)throw new Error('request_too_large');
-  const input=JSON.parse(raw);
-  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('invalid_body');
-  return input as Record<string,unknown>;
+  return parseBody(raw);
 }
 
 export function num(v:unknown):unknown{
