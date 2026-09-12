@@ -448,3 +448,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .chart-hits{position:absolute;inset:26px 0 0;display:flex}
 .chart-hits button{flex:0 0 auto;background:none;border:0;padding:0;height:100%;cursor:pointer}
 .chart-hits button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:6px}
+.dad-card{margin-top:16px;padding:18px;border:1px solid var(--gold-tint);background:var(--gold-tint);border-radius:18px}
+.dad-head small{display:block;font-size:12.5px;color:var(--text-2);font-weight:600}
+.dad-head strong{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold)}
+.dad-head span{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
+.dad-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px}
+.dad-row:first-of-type{margin-top:12px}
+.dad-row span{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
+.dad-row p{flex:1;min-width:0;overflow-wrap:anywhere}
+.dad-row bdi{font-weight:700;white-space:nowrap}

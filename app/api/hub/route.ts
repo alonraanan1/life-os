@@ -1,5 +1,5 @@
 import {json} from '@/lib/auth';
-import {money,scheduled,streak,todayKey,validate,type Entry} from '@/lib/life-model';
+import {DAD_CATEGORY,money,scheduled,streak,todayKey,validate,type Entry} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
 import {authorized,database,readBody,upsert} from '@/lib/shortcuts';
 
@@ -146,7 +146,7 @@ export async function POST(request:Request){
     else if(choice.startsWith(GOAL))message=await updateGoal(s,choice.slice(GOAL.length),value);
     else if(choice===SLEEP)message=await recordSleep(s,value);
     else if(choice===CHECKIN)message=await recordCheckin(s,value);
-    else if(choice===DAD)message=await recordExpense(s,value,'הוצאות אבא');
+    else if(choice===DAD)message=await recordExpense(s,value,DAD_CATEGORY);
     else if(choice===EXPENSE)message=await recordExpense(s,value);
     else if(choice===TASK)message=await createTask(s,value);
     else throw new Error('פעולה לא מוכרת: '+choice);

@@ -11,6 +11,10 @@ export type DataMap={task:TaskData;habit:HabitData;habitEntry:HabitEntryData;tra
 export type Kind=keyof DataMap;
 export type Entry<K extends Kind=Kind>={id:string;kind:K;data:DataMap[K];version:number;createdAt:string;updatedAt:string;deletedAt:string|null};
 export const kinds:Kind[]=['task','habit','habitEntry','transaction','budget','goal','checkin','sleep','settings'];
+// Charges put on the father's credit card via Apple Pay. Written by the Wallet
+// Transaction automation through /api/hub and totalled separately in Finance,
+// so the category string has to stay identical in both places.
+export const DAD_CATEGORY='הוצאות אבא';
 export function todayKey(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
 export function dateOffset(date:string,days:number){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 export function weekday(date:string){return new Date(date+'T12:00:00Z').getUTCDay();}
