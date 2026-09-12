@@ -1,7 +1,7 @@
 import {json} from '@/lib/auth';
 import {money,scheduled,streak,todayKey,validate,type Entry} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
-import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
+import {authorized,database,readBody,upsert} from '@/lib/shortcuts';
 
 const HABIT='הרגל: ',GOAL='מטרה: ',SLEEP='ציון שינה',CHECKIN='צ׳ק־אין',EXPENSE='הוצאה',DAD='הוצאת אבא',TASK='משימה';
 
@@ -78,7 +78,7 @@ async function markHabit(s:State,title:string){
   const existing=await oneRecord(id);
   const data=validate('habitEntry',{habitId:habit.id,date:s.today,done:true});
   await upsert(database(),id,'habitEntry',data,existing?.version);
-  const entries=[...s.entries.filter(e=>e.id!==id),{...(existing||{}),id,kind:'habitEntry',data,version:1,createdAt:'',updatedAt:'',deletedAt:null} as Entry<'habitEntry'>];
+  const entries=[...s.entries.filter(e=>e.id!==id),{...existing,id,kind:'habitEntry',data,version:1,createdAt:'',updatedAt:'',deletedAt:null} as Entry<'habitEntry'>];
   return 'סומן: '+habit.data.title+' · רצף '+streak(habit,entries,s.today);
 }
 

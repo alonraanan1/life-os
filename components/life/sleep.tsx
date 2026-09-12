@@ -1,5 +1,5 @@
 'use client';
-import {useState,type CSSProperties} from 'react';import {Pencil,Plus,Trash2} from 'lucide-react';import {dateOffset,todayKey,type Entry} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
+import {useState,type CSSProperties} from 'react';import {Pencil,Plus,Trash2} from 'lucide-react';import {dateOffset,todayKey,type Entry} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';import {SleepChart} from './sleep-chart';
 export function nightLabel(date:string,today:string){if(date===today)return 'הלילה האחרון';if(date===dateOffset(today,-1))return 'שלשום בלילה';return new Date(date+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});}
 export function SleepView({compact=false}:{compact?:boolean}){
   const {records,save,busy}=useLife();const today=todayKey();
@@ -9,6 +9,7 @@ export function SleepView({compact=false}:{compact?:boolean}){
   const recent=nights.slice(0,7).filter(n=>n.data.score>0);
   const average=recent.length?Math.round(recent.reduce((sum,n)=>sum+n.data.score,0)/recent.length):0;
   return <section><header className="module-header"><div><h2>{compact?'השינה שלי':'איך אתה ישן'}</h2><p>{average?'ממוצע '+average+' בשבעת הלילות האחרונים':'ציון השינה מהשעון, לילה אחר לילה'}</p></div><button className="quiet-action" onClick={()=>setEditing(null)}><Plus size={17}/>לילה חדש</button></header>
+  {!compact&&<SleepChart nights={nights}/>}
   {shown.map(night=>{const pct=Math.min(100,night.data.score);return <article className="sleep-record" key={night.id}><div className="record-row">
     <div className="ring" role="progressbar" aria-label={'ציון שינה '+night.data.date} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} style={{'--pct':pct} as CSSProperties}><div className="hole"><span className="num">{night.data.score||'—'}</span></div></div>
     <div className="record-body"><p>{nightLabel(night.data.date,today)}</p><small>{night.data.hours?night.data.hours+' שעות שינה':'ללא שעות'}{night.data.note?' · '+night.data.note:''}</small></div>
