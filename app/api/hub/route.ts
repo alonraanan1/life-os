@@ -8,7 +8,9 @@ const HABIT='הרגל: ',GOAL='מטרה: ',SLEEP='ציון שינה',CHECKIN='צ
 function hint(label:string,note:string){return note?label+' ('+note+')':label;}
 function strip(choice:string){return choice.replace(/\s*\([^()]*\)\s*$/,'').trim();}
 function numbers(text:string){return (text.match(/-?\d+(?:[.,]\d+)?/g)||[]).map(n=>Number(n.replace(',','.')));}
-function words(text:string){return text.replace(/-?\d+(?:[.,]\d+)?/,'').trim().split(/\s+/).filter(Boolean);}
+// Drops the leading number and any leftover punctuation — a currency symbol
+// arriving from Wallet must not end up as the description.
+function words(text:string){return text.replace(/-?\d+(?:[.,]\d+)?/,'').trim().split(/\s+/).filter(w=>/[\p{L}\p{N}]/u.test(w));}
 
 type State=Awaited<ReturnType<typeof load>>;
 
@@ -120,7 +122,7 @@ async function recordExpense(s:State,value:string,fixedCategory?:string){
   if(amount===undefined||amount<=0)throw new Error('צריך סכום');
   const rest=words(value);
   const category=fixedCategory||rest.shift()||'אחר';
-  const title=rest.join(' ')||category;
+  const title=rest.join(' ')||(fixedCategory?'חיוב באשראי של אבא':category);
   const data=validate('transaction',{title,category,date:s.today,amount:Math.round(amount*100),direction:'expense'});
   await upsert(database(),crypto.randomUUID(),'transaction',data,undefined);
   return 'נרשמה הוצאה: '+money(data.amount)+' · '+category+(title!==category?' · '+title:'');
