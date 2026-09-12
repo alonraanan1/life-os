@@ -17,8 +17,10 @@ export async function readBody(request:Request,maxLen=10000):Promise<Record<stri
 }
 
 export function num(v:unknown):unknown{
-  if(typeof v==='string'&&v.trim()!==''&&Number.isFinite(Number(v)))return Number(v);
-  return v;
+  if(typeof v!=='string')return v;
+  const cleaned=v.replace(/[^\d.-]/g,'');
+  if(cleaned===''||cleaned==='-'||cleaned==='.'||!Number.isFinite(Number(cleaned)))return v;
+  return Number(cleaned);
 }
 
 export function externalRecordId(externalId:unknown):Promise<string>|string{

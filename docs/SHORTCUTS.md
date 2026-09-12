@@ -52,7 +52,11 @@ Shortcut steps: Get Contents of URL (GET, bearer header) → Get Dictionary from
 
 Six `.shortcut` files (one per action above, plus a dedicated "הוצאת אבא" shortcut — see below) were generated with the bearer key already embedded and delivered directly to the owner in chat; the menu shortcut still needs to be assembled by hand in the Shortcuts app (Choose from Menu → Run Shortcut per action), since personal automations/menus aren't something that imports from a file.
 
-"הוצאת אבא" is a stripped-down expense shortcut for a recurring case: charges made on the owner's father's card via Apple Pay. It only asks for the amount — category (`הוצאות אבא`) and description are fixed. Apple does not expose Apple Pay/Wallet transaction details to Shortcuts (no automation trigger can read a transaction's amount), so full hands-off logging isn't possible; this shortcut is the lowest-friction alternative (one tap, one number). It can optionally be wired to a Personal Automation that triggers when a notification arrives from Wallet, to open the shortcut automatically — but the amount still has to be typed in by hand.
+"הוצאת אבא" is a stripped-down expense shortcut for a recurring case: charges made on the owner's father's card via Apple Pay. It only asks for the amount — category (`הוצאות אבא`) and description are fixed.
+
+"הוצאת אבא אוטומטי" is the hands-off version of the same thing, meant to be driven by the **Transaction** personal-automation trigger (iOS 17+). It asks nothing at all: it reads the amount from Shortcut Input and posts it straight through. Set it up on the phone (personal automations can't be imported from a file): Shortcuts → Automation → New → **Transaction** → pick the father's card only → **Run Immediately** (turn off "Ask Before Running") → **Run Shortcut** → "הוצאת אבא אוטומטי", and set that action's Input to the transaction's **Amount** property.
+
+Note on formatting: the amount arriving from Wallet may be currency-formatted (`₪45.50`, `1,234.56`). `num()` in `lib/shortcuts.ts` strips everything except digits, dot and minus before validation, so all the numeric Shortcuts fields (expense amount, check-in mood, goal delta) tolerate that.
 
 ## The menu shortcut
 
