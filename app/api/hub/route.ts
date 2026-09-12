@@ -57,10 +57,18 @@ function menu(s:State){
   return items;
 }
 
+function plainText(body:string,status=200){return new Response(body,{status,headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});}
+function wantsPlain(request:Request){return new URL(request.url).searchParams.get('plain')==='1';}
+
 export async function GET(request:Request){
   if(!await authorized(request))return json({error:'unauthorized'},401);
-  try{const s=await load();return json({summary:summary(s),menu:menu(s)});}
-  catch{return json({error:'storage_unavailable'},503);}
+  try{
+    const s=await load();
+    // plain=1 answers with a bare JSON array so Shortcuts can pipe it straight
+    // into Choose from List — no dictionary unwrapping actions needed.
+    if(wantsPlain(request))return json(menu(s));
+    return json({summary:summary(s),menu:menu(s)});
+  }catch{return json({error:'storage_unavailable'},503);}
 }
 
 async function markHabit(s:State,title:string){
@@ -140,11 +148,15 @@ export async function POST(request:Request){
     else if(choice===EXPENSE)message=await recordExpense(s,value);
     else if(choice===TASK)message=await createTask(s,value);
     else throw new Error('פעולה לא מוכרת: '+choice);
+    // plain=1 answers with the confirmation as bare text, so Shortcuts can
+    // Show Result on it directly instead of unwrapping a dictionary.
+    if(wantsPlain(request))return plainText(message);
     return json({ok:true,message});
   }catch(e){
     const text=e instanceof Error?e.message:'';
     if(text==='request_too_large')return json({error:text},413);
     if(text==='storage_unavailable')return json({error:text},503);
+    if(wantsPlain(request))return plainText(text||'הבקשה לא הצליחה',400);
     return json({error:text||'invalid_request',message:text},400);
   }
 }
