@@ -43,15 +43,16 @@ function summary(s:State){
   return parts.join(' · ');
 }
 
-// Sleep is deliberately absent from the menu: it has its own shortcut that asks
-// with a number pad and posts to /api/sleep. The SLEEP branch in POST still
-// works if something sends it, it just isn't offered here.
+// Sleep and the father's-card expense are deliberately absent from the menu.
+// Sleep has its own shortcut that asks with a number pad and posts to
+// /api/sleep; the father's card is logged hands-free by the Wallet Transaction
+// automation. Their branches in POST still work if something sends them —
+// the automation depends on DAD — they just aren't offered as menu choices.
 function menu(s:State){
   const items:string[]=[];
   for(const h of s.due)if(!s.marked(h))items.push(hint(HABIT+h.data.title,'רצף '+streak(h,s.entries,s.today)));
   if(!s.checkin)items.push(hint(CHECKIN,'1-5 ואז הערה'));
   items.push(hint(EXPENSE,'סכום קטגוריה תיאור'));
-  items.push(hint(DAD,'סכום'));
   items.push(hint(TASK,'מה צריך לעשות'));
   for(const g of s.goals.filter(g=>g.data.current<g.data.target))items.push(hint(GOAL+g.data.title,g.data.current+'/'+g.data.target+' '+g.data.unit));
   if(s.checkin)items.push(hint(CHECKIN,'עדכון'));
