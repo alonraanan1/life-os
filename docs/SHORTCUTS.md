@@ -48,6 +48,26 @@ POST body: either `{ "title": "קרן חופשה ביוון", "delta": 200 }` (a
 
 Shortcut steps: Get Contents of URL (GET, bearer header) → Get Dictionary from Input → Get Value for `goals` → Choose from List → Ask for Input (Number) → how much to add → Get Contents of URL (POST, bearer header, JSON body `{"title": <chosen goal>, "delta": <number>}`).
 
+## 6. ציון שינה — POST /api/sleep
+
+Body: `{ "score": 82, "hours": 7.5, "date": "2026-09-12", "note": "" }` — one record per night, id `sleep:<date>`, so re-posting the same day overwrites. At least one of `score` (0–100) or `hours` (0–24) is required; `date` defaults to today and refers to the night just ended.
+
+Garmin's Sleep Score cannot be pulled automatically: Garmin's proprietary metrics (Sleep Score, Body Battery, Training Readiness) have no HealthKit equivalent and never leave Garmin Connect, and the Garmin Connect iOS app exposes no Shortcuts actions. Only sleep stages and duration reach Apple Health. So the score is typed; hours are optional.
+
+## 7. The hub — GET + POST /api/hub
+
+This is the one shortcut that replaces all the others. **GET** returns `{summary, menu}` where the menu is built from today's live state: sleep and check-in appear at the top only while they're still missing (and move to the bottom as "עדכון" once recorded), each habit still unmarked today appears with its current streak, and each unfinished goal appears with its progress. **POST** takes `{choice, value}` — the choice is the menu line exactly as chosen (the server strips the "(hint)" suffix), and the value is free text that the server parses per action:
+
+- `הרגל: <name>` — no value needed; marks it done today, replies with the new streak
+- `ציון שינה` — first number is the score, an optional second number is hours
+- `צ׳ק־אין` — first number is mood 1–5, the remaining words become the note
+- `הוצאה` — first number is the amount, next word is the category, the rest is the description
+- `הוצאת אבא` — amount only; category is fixed to `הוצאות אבא`
+- `משימה` — the whole value is the title
+- `מטרה: <name>` — the number is a delta added to current progress
+
+It replies `{ok:true, message}` with a human-readable confirmation, which the shortcut shows. Because the server does the parsing and the state logic, the phone side stays linear — no If/Otherwise branches to maintain.
+
 ## Ready-made .shortcut files
 
 Six `.shortcut` files (one per action above, plus a dedicated "הוצאת אבא" shortcut — see below) were generated with the bearer key already embedded and delivered directly to the owner in chat; the menu shortcut still needs to be assembled by hand in the Shortcuts app (Choose from Menu → Run Shortcut per action), since personal automations/menus aren't something that imports from a file.
@@ -58,8 +78,10 @@ Six `.shortcut` files (one per action above, plus a dedicated "הוצאת אבא
 
 Note on formatting: the amount arriving from Wallet may be currency-formatted (`₪45.50`, `1,234.56`). `num()` in `lib/shortcuts.ts` strips everything except digits, dot and minus before validation, so all the numeric Shortcuts fields (expense amount, check-in mood, goal delta) tolerate that.
 
-## The menu shortcut
+## The "Life OS" hub shortcut
 
-Build a sixth shortcut ("Life OS") with a single "Choose from Menu" action listing the five actions above by name (הוצאה חדשה / משימה חדשה / סימון הרגל / צ׳ק־אין יומי / עדכון התקדמות במטרה). Under each menu item, add a "Run Shortcut" action pointing at that action's own shortcut (pass no input — each one asks for what it needs on its own). This way each shortcut also keeps working standalone (put it on the Home Screen, run it via Siri, or add it to a Focus Filter/automation on its own), and the menu shortcut is just a front door to all five. Give the menu shortcut a Siri phrase like "לייף אין דבר חדש" or whatever feels natural to say out loud.
+Nine linear actions, no branching: Get Contents of URL (GET /api/hub) → Get Dictionary from Input → Get Value for `menu` → Choose from List → Ask for Input (its prompt is the chosen line itself, so it says what to type) → Get Contents of URL (POST /api/hub with `choice` + `value`) → Get Dictionary from Input → Get Value for `message` → Show Result. Give it a Siri phrase and put it on the Home Screen; it is the single entry point for everything.
 
-All five actions are idempotent by design where it matters: expense and task both accept an `externalId` to make retries safe; habit-mark, check-in and goal-progress simply overwrite the same day/goal, so re-running one after a network hiccup never creates duplicates.
+The single-purpose shortcuts still work standalone and are worth keeping for the cases where you know exactly what you want without reading a menu (and "הוצאת אבא אוטומטי" must stay, since the Transaction automation calls it directly).
+
+All actions are idempotent where it matters: expense and task accept an `externalId` to make retries safe; habit-mark, check-in, sleep and goal-progress overwrite the same day/goal, so re-running one after a network hiccup never creates duplicates.
