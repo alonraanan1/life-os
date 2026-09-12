@@ -40,3 +40,7 @@ next-env.d.ts
 
 .dev.vars*
 *.tsbuildinfo
+
+# Apple Shortcuts files carry the APPLE_SHORTCUTS_API_KEY inline — never commit them
+*.shortcut
+/Claude outputs/

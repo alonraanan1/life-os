@@ -1,7 +1,7 @@
 'use client';
 import {useRef,useState} from 'react';import {Download,LogOut,Pencil,RotateCcw,Upload} from 'lucide-react';import {kinds,type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
-const labels:Record<Kind,string>={task:'משימות',habit:'הרגלים',habitEntry:'סימוני הרגלים',transaction:'תנועות כספיות',budget:'תקציבים',goal:'מטרות',checkin:'צ׳ק־אינים',settings:'הגדרות'};
-const single:Record<Kind,string>={task:'משימה',habit:'הרגל',habitEntry:'סימון הרגל',transaction:'תנועה',budget:'תקציב',goal:'מטרה',checkin:'צ׳ק־אין',settings:'הגדרות'};
+const labels:Record<Kind,string>={task:'משימות',habit:'הרגלים',habitEntry:'סימוני הרגלים',transaction:'תנועות כספיות',budget:'תקציבים',goal:'מטרות',checkin:'צ׳ק־אינים',sleep:'לילות שינה',settings:'הגדרות'};
+const single:Record<Kind,string>={task:'משימה',habit:'הרגל',habitEntry:'סימון הרגל',transaction:'תנועה',budget:'תקציב',goal:'מטרה',checkin:'צ׳ק־אין',sleep:'שינה',settings:'הגדרות'};
 function titleOf(entry:Entry){const data=entry.data as Record<string,unknown>;for(const key of ['title','note','name','month','date']){const value=data[key];if(typeof value==='string'&&value.trim())return value;}return entry.id;}
 export function DataView(){
   const {records,save,busy,refresh}=useLife();const file=useRef<HTMLInputElement>(null);

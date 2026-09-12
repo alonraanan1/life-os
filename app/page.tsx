@@ -9,6 +9,7 @@ import {FinanceView} from '@/components/life/finance';
 import {TasksView} from '@/components/life/tasks';
 import {HabitsView} from '@/components/life/habits';
 import {GoalsView,CheckinsView} from '@/components/life/goals';
+import {SleepView} from '@/components/life/sleep';
 import {TimelineView} from '@/components/life/timeline';
 import {DataView} from '@/components/life/data';
 import type {Entry} from '@/lib/life-model';
@@ -59,6 +60,7 @@ function Dashboard(){
           view==='finance'?<FinanceView/>:
           view==='tasks'?<TasksView/>:
           view==='habits'?<HabitsView/>:
+          view==='sleep'?<SleepView/>:
           view==='goals'?<GoalsView/>:
           view==='timeline'?<><CheckinsView/><TimelineView/></>:
           <DataView/>}

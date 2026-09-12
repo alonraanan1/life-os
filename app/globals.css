@@ -426,3 +426,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .google-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:30px;padding:12px 20px;background:var(--surface-2);border:1px solid var(--stroke);border-radius:14px;font-size:16px;font-weight:600;color:var(--text);text-decoration:none;transition:border-color 150ms,background 150ms}
 .google-action:hover{background:var(--surface);border-color:var(--stroke-strong)}
 .google-action:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.sleep-record{padding-bottom:14px}
+.sleep-record:last-child{padding-bottom:0}
+.sleep-record .record-row{border:0;padding-block:8px}
+.activity-icon.sleep{background:var(--surface-2);color:var(--text-2)}
+.feed-value.sleep{color:var(--text-2)}
+@media(min-width:640px){.today-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
