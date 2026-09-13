@@ -487,3 +487,20 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
  .mobile-nav span{padding-inline:4px}
  .mobile-nav svg{width:19px;height:19px}
 }
+/* Summary grid, cleaned up: dividers are drawn only between neighbours, and an
+   odd card last in a two-column row stretches instead of leaving a dead half. */
+.summary-card{border:0}
+.today-summary .summary-card:nth-child(odd){border-inline-end:1px solid var(--stroke)}
+.today-summary .summary-card:nth-child(n+3){border-top:1px solid var(--stroke)}
+.today-summary .summary-card:last-child:nth-child(odd){grid-column:1/-1;border-inline-end:0}
+@media(min-width:640px){
+ .today-summary .summary-card{border:0;border-top:0}
+ .today-summary .summary-card:nth-child(odd){border-inline-end:0}
+ .today-summary .summary-card+.summary-card{border-inline-start:1px solid var(--stroke)}
+ .today-summary .summary-card:last-child:nth-child(odd){grid-column:auto}
+}
+/* The tab bar sits over scrolling content, so it needs a near-opaque ground of
+   its own — the standard glass surface is far too sheer to read against text. */
+:root{--bar:rgba(12,12,12,.86)}
+@media(prefers-color-scheme:light){:root{--bar:rgba(255,255,255,.88)}}
+.mobile-bar{background:var(--bar)}
