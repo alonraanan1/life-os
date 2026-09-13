@@ -504,3 +504,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 :root{--bar:rgba(12,12,12,.86)}
 @media(prefers-color-scheme:light){:root{--bar:rgba(255,255,255,.88)}}
 .mobile-bar{background:var(--bar)}
+/* A card that stretches across both columns reads as a row, not as a tile with
+   a dead half beside it. */
+.today-summary .summary-card:last-child:nth-child(odd){display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.today-summary .summary-card:last-child:nth-child(odd) .summary-icon{margin-bottom:0}
+.today-summary .summary-card:last-child:nth-child(odd) small{flex:1}
+.today-summary .summary-card:last-child:nth-child(odd) .summary-note{flex-basis:100%}
+@media(min-width:640px){.today-summary .summary-card:last-child:nth-child(odd){display:grid}}
