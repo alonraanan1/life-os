@@ -1,6 +1,8 @@
 'use client';
 import {useState,type CSSProperties} from 'react';import {Pencil,Plus,Trash2} from 'lucide-react';import {dateOffset,todayKey,type Entry} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';import {SleepChart} from './sleep-chart';
-export function nightLabel(date:string,today:string){if(date===today)return 'הלילה האחרון';if(date===dateOffset(today,-1))return 'שלשום בלילה';return new Date(date+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});}
+// Only "last night" is unambiguous in words — a record dated yesterday is the
+// night before that, which "אתמול" would describe wrongly, so it gets a date.
+export function nightLabel(date:string,today:string){if(date===today)return 'הלילה האחרון';return new Date(date+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});}
 export function SleepView({compact=false}:{compact?:boolean}){
   const {records,save,busy}=useLife();const today=todayKey();
   const [editing,setEditing]=useState<Entry<'sleep'>|null|undefined>();

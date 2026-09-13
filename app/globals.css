@@ -511,3 +511,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .today-summary .summary-card:last-child:nth-child(odd) small{flex:1}
 .today-summary .summary-card:last-child:nth-child(odd) .summary-note{flex-basis:100%}
 @media(min-width:640px){.today-summary .summary-card:last-child:nth-child(odd){display:grid}}
+/* Section action buttons must never wrap onto a second line — that is what was
+   colliding with the heading beside them on narrow screens. */
+.quiet-action,.link-button,.balance-heading button{white-space:nowrap}
+.module-header{gap:12px}
+.module-header>div:first-child{min-width:0}
