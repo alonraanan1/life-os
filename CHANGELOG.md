@@ -157,3 +157,17 @@ Template for a new entry:
   - `npm run lint` reports 27 errors. All but one are pre-existing issues in vendor `components/ui/*` files; the one in `components/life/sleep.tsx` is `role="progressbar"` on the score ring, which is the correct semantics for a custom ring and is the same pattern `goals.tsx` uses. CI gates typecheck, test and build — not lint.
   - Verification was done with curl against production after each deploy, not locally: `wrangler dev` has been unreliable in this project. The hub's GET/POST, form-encoded bodies and `/api/sleep` were all confirmed live.
   - A handful of test records were created during that verification and may still be in the database (an expense, two tasks, a sleep night). Harmless, but they are not real data.
+
+### 2026-09-13 — Claude (Cowork), session 7 continued: father's-card total and phone-layout repairs
+- **Summary:** Added a Finance section totalling what has been charged to the father's card this month (amount, number of charges, previous month for comparison, and the charges themselves), keyed off the shared `DAD_CATEGORY` constant so the automation and the report can never drift apart. Then fixed a batch of phone-layout faults, several of them regressions I introduced in the redesign.
+- **Files touched:** `lib/life-model.ts` (`DAD_CATEGORY`), `app/api/hub/route.ts` (uses the constant; strips currency symbols out of descriptions), `components/life/finance.tsx`, `components/life/sleep.tsx`, `app/globals.css`.
+- **The layout faults, and why they happened:**
+  - Paired fields (`.form-columns`) stayed two-up on narrow screens because the redesign dropped the old `@media(max-width:480px)` block that collapsed them. Native `date`/`time` controls claim more width than half a phone dialog, so they overlapped. That whole mobile block is restored, at 520px.
+  - Native date controls inside the RTL form were bidi-reordered into nonsense ("Sep 2026 13"); they are now forced to `direction:ltr`.
+  - Section action buttons ("לילה חדש", "תנועה חדשה") wrapped to a second line and collided with the heading beside them — now `white-space:nowrap`.
+  - The tab bar carried the standard sheer glass surface, so page text read straight through it. It has its own near-opaque `--bar` token now. It also holds seven tabs since sleep was added, so labels shrink below 520px.
+  - The Today summary grid has five cards, which left a dead half-row in two columns; the last odd card now spans and lays out as a row.
+- **Open items / notes for the next AI:**
+  - **Verify UI changes by looking at them.** These were all found by loading the live site in the browser pane at 375×812 and screenshotting, after reasoning about the CSS had already missed them. The owner's session is signed in there, so the real app is reachable.
+  - The father's-card Apple Pay automation was built on the phone but has not yet fired on a real charge — the owner had no way to test at the time. If it turns out the Transaction trigger does not support a non-Apple-Card Israeli card, the fallback is a two-action manual shortcut posting `choice=הוצאת אבא`; note that the hub menu no longer offers that choice, by request.
+  - `SleepChart`'s hover readout was observed defaulting to the older night rather than the newest in the automated browser (a stray hover state that never cleared). Not reproduced by hand and not chased down; the readout always names the date it is showing, so it misleads no one, but it is worth a look if the owner reports it.
