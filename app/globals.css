@@ -457,3 +457,33 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .dad-row span{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
 .dad-row p{flex:1;min-width:0;overflow-wrap:anywhere}
 .dad-row bdi{font-weight:700;white-space:nowrap}
+/* Native date/time/number controls render their own LTR content. Inside an RTL
+   form the parts get bidi-reordered into nonsense ("Sep 2026 13"), so force the
+   control itself to LTR while keeping it visually aligned to the RTL start. */
+.life-form input[type="date"],.life-form input[type="time"],.life-form input[type="month"],.life-form input[type="number"],
+.date-control input,.search-input[type="month"]{direction:ltr;text-align:right}
+/* Narrow phones: side-by-side pairs stop fitting once the native controls
+   claim their intrinsic width, so they stack instead of overlapping. */
+@media(max-width:520px){
+ .form-columns{grid-template-columns:1fr;gap:16px}
+ .life-editor{padding:22px!important}
+ .module-header{align-items:flex-start;gap:10px}
+ .module-header h2{font-size:18px}
+ .module-tools{display:block}
+ .module-tools .search-input{margin-top:14px;width:100%}
+ .filter-row{max-width:100%;overflow-x:auto}
+ .filter-row button{padding-inline:12px}
+ .record-row{gap:8px}
+ .icon-action{min-width:34px}
+ .date-control{flex-wrap:wrap;gap:8px}
+ .date-control input{width:100%}
+ .dad-row{gap:8px}
+}
+/* Seven tabs on a phone: shrink the labels so they sit side by side instead of
+   colliding, and never let the bar scroll sideways. */
+@media(max-width:520px){
+ .mobile-bar{padding-inline:2px;overflow:hidden}
+ .mobile-nav{font-size:10px;gap:2px;min-width:0;flex:1 1 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mobile-nav span{padding-inline:4px}
+ .mobile-nav svg{width:19px;height:19px}
+}
