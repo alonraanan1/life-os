@@ -18,6 +18,8 @@ Tasks, goals, check-ins and the mixed timeline are removed from active navigatio
 - Read CHANGELOG.md and docs/HABIT_TRACKER_PLAN.md before further edits.
 
 ## Verification for this refocus
-Typecheck, all three domain tests and production build passed. Local API test passed: habit creation, mark, reload, undo, soft delete, anonymous rejection. No production records were changed by QA. Temporary localhost-only session fixture was removed before the final build. Original SleepView, Finance and backend files are unchanged.
+Typecheck, all three domain tests and production build passed for the initial refocus. Local API test passed: habit creation, mark, reload, undo, soft delete, anonymous rejection. No production records were changed by QA. Temporary localhost-only session fixture was removed before the final build. Finance and backend files are unchanged.
+
+Follow-up mobile polish removes nested frames and duplicate sleep headings. SleepView now accepts a contextual heading and decimal hours such as 7.12 (`step="any"`), without changing the numeric data contract, chart or history. Shared-validator precision check, typecheck, existing tests and production build pass.
 
 Visual QA remains open: the browser tool reported no available browsers, so desktop/mobile layouts were reviewed in source but not rendered interactively. Publishing uses the existing GitHub workflow; verify its run for the exact commit before declaring deployment success.

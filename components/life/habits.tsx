@@ -43,6 +43,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const visible=compact?dueHabits:filter==='scheduled'?dueHabits:habits;
   const completed=dueHabits.filter(h=>entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done)).length;
   const completionPercent=dueHabits.length?Math.round(completed/dueHabits.length*100):0;
+  const habitCountLabel=habits.length===1?'הרגל פעיל':habits.length+' הרגלים פעילים';
 
   function moveDate(offset:number){
     const next=dateOffset(selected,offset);
@@ -60,7 +61,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     <header className="module-header">
       <div>
         <h2>{compact?'הרגלים של היום':'ההרגלים שלי'}</h2>
-        <p>{compact?'כל סימון הוא צעד קטן קדימה.':habits.length?habits.length+' הרגלים פעילים · בונים רצף בקצב שלך':'התחלה קטנה, שגרה שאפשר לראות.'}</p>
+        <p>{compact?'כל סימון הוא צעד קטן קדימה.':habits.length?habitCountLabel:'התחלה קטנה, שגרה שאפשר לראות.'}</p>
       </div>
       <button className="quiet-action" onClick={()=>setEditing(null)}><Plus size={17}/>הרגל חדש</button>
     </header>
@@ -68,7 +69,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     {!compact&&<div className="habit-toolbar">
       <div className="date-control habit-date-control">
         <button className="icon-action" aria-label="היום הקודם" onClick={()=>moveDate(-1)}><ChevronRight size={17}/></button>
-        <label>תיעוד ליום<input aria-label="יום לתיעוד" type="date" value={selected} max={today} onChange={event=>{const next=event.target.value;if(next&&next<=today)setDate(next);}}/></label>
+        <label className="sr-only" htmlFor="habit-date">יום לתיעוד</label>
+        <input id="habit-date" aria-label="יום לתיעוד" type="date" value={selected} max={today} onChange={event=>{const next=event.target.value;if(next&&next<=today)setDate(next);}}/>
         <button className="icon-action" aria-label="היום הבא" onClick={()=>moveDate(1)} disabled={selected>=today}><ChevronLeft size={17}/></button>
         {selected!==today&&<button className="quiet-action today-jump" onClick={()=>setDate(today)}>חזרה להיום</button>}
       </div>
@@ -82,7 +84,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <div className="habit-summary-copy">
         <span>{selected===today?'היום':readableDate(selected)}</span>
         <strong>{dueHabits.length?completed+'/'+dueHabits.length:'—'}</strong>
-        <small>{dueHabits.length?(completed===dueHabits.length?'כל ההרגלים המתוכננים הושלמו':'מתוך '+dueHabits.length+' הרגלים מתוכננים'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
+        <small>{dueHabits.length?(completed===dueHabits.length?'כל ההרגלים הושלמו':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
       </div>
       <div className="habit-progress" role="progressbar" aria-label="השלמת ההרגלים המתוכננים" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}>
         <span style={{width:completionPercent+'%'}}/>
@@ -93,16 +95,21 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       {visible.map(h=>{
         const done=entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done);
         const due=scheduled(h.data,selected);
+        const streakDays=streak(h,entries,selected);
+        const scheduleLabel=h.data.days.length===7?'כל יום':h.data.days.map(day=>days[day]).join(' · ');
         return <div key={h.id} className="habit-record">
           <div className="record-row">
             <span className="habit-emoji" aria-hidden="true">{h.data.emoji}</span>
             <div className="record-body">
               <p>{h.data.title}</p>
-              <small><Flame size={13} className="inline"/> {streak(h,entries,selected)} ימי ביצוע ברצף · {h.data.days.map(day=>days[day]).join(' ')}</small>
+              <small><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</small>
+              <small className="habit-schedule">{scheduleLabel}</small>
             </div>
-            <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={busy||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
-            <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
-            {!compact&&<button className="icon-action" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
+            <div className="habit-actions">
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={busy||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
+              <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
+              {!compact&&<button className="icon-action" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
+            </div>
           </div>
           {!compact&&<div className="habit-history" aria-label={'שבוע אחרון: '+h.data.title}>
             {Array.from({length:7},(_,index)=>dateOffset(selected,index-6)).map(day=>{
@@ -126,9 +133,6 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>
-  {!compact&&<section className="habit-sleep-wrap">
-    <header className="module-header"><div><h2>הרגל השינה</h2><p>שעות שינה, דירוג והיסטוריית לילות.</p></div></header>
-    <SleepView/>
-  </section>}
+  {!compact&&<SleepView title="הרגל השינה"/>}
   </>;
 }

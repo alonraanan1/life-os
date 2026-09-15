@@ -22,3 +22,10 @@ GPT-5.6 Luna implements only the bounded frontend change. Root agent owns review
 - Scheduled-day denominator, historic selection and toggles agree; future dates cannot be recorded.
 - Existing authentication, saved data, backup and recovery remain intact.
 - Desktop and mobile have no clipped controls or unintended horizontal overflow.
+
+## Mobile refinement — user screenshot, 2026-09-15
+- Remove the nested container hierarchy on Habits: open sections and a compact progress summary, with the existing palette and controls preserved.
+- Reduce header copy and date control width; align habit actions and separate schedule text from streak text so Hebrew metadata does not break awkwardly.
+- Give sleep one heading while retaining chart, history, hours, score, notes and CRUD.
+- Accept fractional sleep hours such as 7.12 through the website, matching the existing numeric Shortcuts/backend contract. Do not reinterpret existing values as hours-and-minutes notation or migrate saved records.
+- Luna implements the scoped frontend changes; root reviews, documents, validates and deploys. Browser capture remains unavailable; the supplied screenshot is the visual evidence for this refinement.

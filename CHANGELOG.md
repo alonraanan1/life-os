@@ -19,6 +19,11 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-15 — Codex with GPT-5.6 Luna — Mobile habit polish and sleep precision
+- **Summary:** Refined the habit screen using the user's iPhone screenshot: removed oversized nested section frames, simplified completion copy, shortened date controls, aligned habit actions and separated schedule/streak text. Sleep now has a single heading and accepts fractional hours such as `7.12` through the website.
+- **Files touched:** `components/life/habits.tsx`, `components/life/sleep.tsx`, `app/globals.css`, `docs/HABIT_TRACKER_PLAN.md`, `docs/IMPLEMENTATION_STATUS.md`.
+- **Open items / notes for the next AI:** Sleep input previously used `step="0.1"`, causing browser step validation to reject `7.12`. It now uses `step="any"` and a decimal keyboard, preserving the existing numeric hours contract shared with Shortcuts. No hours/minutes reinterpretation, schema migration or stored-data changes. Chart, sleep history, habit history and CRUD remain available. Typecheck and three domain tests passed; direct shared-validator check preserved `7.12`. Browser inventory still reports no available browser, so updated desktop/mobile rendering and native iOS input interaction require a later visual pass.
+
 ### 2026-09-15 — Codex with GPT-5.6 Luna — Habit-first product
 - **Summary:** Replaced the mixed dashboard with Habits as the default screen and one Finance page. Preserved the full existing sleep tracker inside Habits as a dedicated sleep habit, including hours, score, notes, chart and history, following the user's clarification.
 - **Files touched:** `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/life/nav.ts`, `components/life/habits.tsx`, `components/life/data.tsx`, `docs/HABIT_TRACKER_PLAN.md`, `docs/IMPLEMENTATION_STATUS.md`.
