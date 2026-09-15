@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-15 — Codex with GPT-5.6 Luna — Sunday-to-Saturday habit weeks
+- **Summary:** Habit history now displays the selected date's calendar week, Sunday through Saturday, instead of the seven days ending on that date. Following today starts a new visible week every Sunday in Israel time.
+- **Files touched:** `components/life/habits.tsx`, `lib/life-model.ts`, `tests/model.test.mjs`, `docs/HABIT_TRACKER_PLAN.md`.
+- **Validation:** Typecheck, four domain tests (including Sunday/Saturday and year boundaries), production build and diff check passed.
+- **Open items / notes for the next AI:** Future dates remain visible but disabled; historic dates show their own week. Existing marks and streaks are preserved across week boundaries. No data reset, migration, sleep or finance changes. Browser-based visual verification remains unavailable in this environment.
+
 ### 2026-09-15 — Codex with GPT-5.6 Luna — Mobile habit polish and sleep precision
 - **Summary:** Refined the habit screen using the user's iPhone screenshot: removed oversized nested section frames, simplified completion copy, shortened date controls, aligned habit actions and separated schedule/streak text. Sleep now has a single heading and accepts fractional hours such as `7.12` through the website.
 - **Files touched:** `components/life/habits.tsx`, `components/life/sleep.tsx`, `app/globals.css`, `docs/HABIT_TRACKER_PLAN.md`, `docs/IMPLEMENTATION_STATUS.md`.

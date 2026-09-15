@@ -29,3 +29,6 @@ GPT-5.6 Luna implements only the bounded frontend change. Root agent owns review
 - Give sleep one heading while retaining chart, history, hours, score, notes and CRUD.
 - Accept fractional sleep hours such as 7.12 through the website, matching the existing numeric Shortcuts/backend contract. Do not reinterpret existing values as hours-and-minutes notation or migrate saved records.
 - Luna implements the scoped frontend changes; root reviews, documents, validates and deploys. Browser capture remains unavailable; the supplied screenshot is the visual evidence for this refinement.
+
+## Fixed calendar weeks
+Habit history uses Sunday through Saturday of the selected date's week, replacing the rolling seven days. Following today rolls to the new week on Sunday in Israel time. Future days remain visible but cannot be marked; previous weeks and streaks remain intact. Selecting a historical date displays its calendar week.

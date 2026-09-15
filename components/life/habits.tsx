@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState} from 'react';
 import {Check,ChevronLeft,ChevronRight,Flame,Pencil,Plus,Trash2} from 'lucide-react';
-import {dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
+import {calendarWeek,dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
 import {SleepView} from './sleep';
@@ -41,6 +41,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const selected=date>today?today:date;
   const dueHabits=habits.filter(h=>scheduled(h.data,selected));
   const visible=compact?dueHabits:filter==='scheduled'?dueHabits:habits;
+  const week=calendarWeek(selected);
   const completed=dueHabits.filter(h=>entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done)).length;
   const completionPercent=dueHabits.length?Math.round(completed/dueHabits.length*100):0;
   const habitCountLabel=habits.length===1?'הרגל פעיל':habits.length+' הרגלים פעילים';
@@ -111,11 +112,11 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               {!compact&&<button className="icon-action" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
             </div>
           </div>
-          {!compact&&<div className="habit-history" aria-label={'שבוע אחרון: '+h.data.title}>
-            {Array.from({length:7},(_,index)=>dateOffset(selected,index-6)).map(day=>{
+          {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
+            {week.map(day=>{
               const marked=entries.some(e=>e.data.habitId===h.id&&e.data.date===day&&e.data.done);
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':''} aria-label={h.data.title+' '+day+(marked?' בוצע':' לא בוצע')} aria-pressed={marked} disabled={busy||!canMark} onClick={()=>{void toggle(h,day).catch(()=>{});}}>
+              return <button key={day} className={marked?'marked':''} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={busy||!canMark} onClick={()=>{void toggle(h,day).catch(()=>{});}}>
                 <span>{new Date(day+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'short'})}</span>
                 <b>{marked?<Check size={16}/>:new Date(day+'T12:00:00Z').getUTCDate()}</b>
               </button>;

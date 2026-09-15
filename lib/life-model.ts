@@ -18,6 +18,7 @@ export const DAD_CATEGORY='הוצאות אבא';
 export function todayKey(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
 export function dateOffset(date:string,days:number){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 export function weekday(date:string){return new Date(date+'T12:00:00Z').getUTCDay();}
+export function calendarWeek(date:string){const start=dateOffset(date,-new Date(date+'T12:00:00Z').getUTCDay());return Array.from({length:7},(_,index)=>dateOffset(start,index));}
 export function scheduled(h:HabitData,date:string){return date>=h.startDate&&h.days.includes(weekday(date));}
 export function streak(h:Entry<'habit'>,entries:Entry<'habitEntry'>[],date:string){const done=new Set(entries.filter(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.done).map(e=>e.data.date));let count=0;for(let i=0;i<36600;i++){const d=dateOffset(date,-i);if(d<h.data.startDate)break;if(!scheduled(h.data,d))continue;if(done.has(d))count++;else if(i!==0)break;}return count;}
 export function money(cents:number){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2}).format(cents/100);}
