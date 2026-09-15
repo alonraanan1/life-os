@@ -19,6 +19,17 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-15 — Codex with GPT-5.6 Luna — Habit-first product
+- **Summary:** Replaced the mixed dashboard with Habits as the default screen and one Finance page. Preserved the full existing sleep tracker inside Habits as a dedicated sleep habit, including hours, score, notes, chart and history, following the user's clarification.
+- **Files touched:** `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/life/nav.ts`, `components/life/habits.tsx`, `components/life/data.tsx`, `docs/HABIT_TRACKER_PLAN.md`, `docs/IMPLEMENTATION_STATUS.md`.
+- **Open items / notes for the next AI:**
+  - Tasks, goals, check-ins and mixed timeline are no longer active destinations. Their records, API routes and backup compatibility remain intact. No migration or destructive cleanup was performed. Do not restore the old dashboard without asking the user.
+  - Habits now have a selected-date completion summary, scheduled/all filter, date navigation and seven-day history. Only scheduled habits enter the completion denominator. Sleep retains its numeric recording model and is not counted as a binary habit completion; the original `SleepView` is reused unchanged.
+  - Finance (including father's-card expenses), Google authentication, D1 and intake integrations are unchanged. Settings retain complete backup/import and trash recovery; stale password copy now mentions Google.
+  - Typecheck, all three domain tests and production build passed. Local API QA passed habit create/mark/reload/undo/soft-delete and anonymous rejection. Production records were not changed; temporary local session fixture was removed before building.
+  - Desktop/mobile visual QA could not run because the browser tool reported no available browsers. Responsive CSS was reviewed, but an authenticated visual pass remains open.
+  - Canonical publishing remains GitHub main → Cloudflare at `https://sites-project.alonraanan1.workers.dev`. See implementation plan for the new scope; the older eight-module plan is superseded.
+
 ### 2026-09-11 — Claude (Cowork), session 6 — Google sign-in replaces the password
 - **Summary:** The password login is gone. Sign-in is now Google OAuth restricted to one allowed address, and the session lasts 400 days and renews on every app open, so each device is signed in once and stays signed in.
 - **Files touched:** `lib/auth.ts`, `app/api/auth/route.ts`, `app/api/auth/google/route.ts` (new), `app/api/auth/google/callback/route.ts` (new), `app/api/expense/route.ts`, `components/life/auth-gate.tsx`, `app/globals.css`, `docs/SHORTCUTS.md`, `docs/IMPLEMENTATION_STATUS.md`.

@@ -1,20 +1,23 @@
-# Implementation handoff
+# Current product handoff — Habit Tracker
 
-All eight stages are complete. Sign-in is Google-only (single allowed account); the password login was removed at the user's request. The app runs on real persisted data end to end; no seeded mock data remains in the UI.
+The user changed direction on 2026-09-15: Life OS is now a habit tracker with one secondary Finance page. This supersedes the previous eight-area dashboard scope.
 
-- [x] 1. Synchronize GitHub and local changes; PR build checks.
-- [x] 2. Owner-only authentication and API protection.
-- [x] 3. D1 persistence, export and recovery.
-- [x] 4. Task CRUD, dates, completion and filters.
-- [x] 5. Habit schedules, dated history and streaks.
-- [x] 6. Income, expenses, categories and budgets; Shortcuts intake.
-- [x] 7. Goals and daily check-ins.
-- [x] 8. Live dashboard, responsive polish and end-to-end QA.
+## Active scope
+- Habits: default screen, scheduled daily completion, dated history, streaks, creation/editing and soft deletion. Includes the existing sleep tracker as a dedicated habit, retaining hours, sleep rating, chart and history.
+- Finance: existing complete page, including father's-card expenses and intake integrations.
+- Settings: secondary profile, complete backup/import, trash recovery and Google logout.
 
-Canonical site: https://sites-project.alonraanan1.workers.dev
-Canonical repository: https://github.com/alonraanan1/life-os
-Preserve existing uncommitted work. Update this file and append CHANGELOG entries at each checkpoint. Never commit secrets or production exports.
+Tasks, goals, check-ins and the mixed timeline are removed from active navigation and the home screen. Sleep lives inside Habits instead of a separate navigation destination. Existing records, schema, import/export support and integration endpoints are retained for compatibility. Do not delete historical data or silently restore the old dashboard.
 
-## Post-launch: visual redesign (2026-09-11)
+## Architecture and publishing
+- Canonical repository: https://github.com/alonraanan1/life-os
+- Canonical site: https://sites-project.alonraanan1.workers.dev
+- Google-only authentication restricted to OWNER_EMAIL remains unchanged.
+- D1 is authoritative. This refocus needs no migration.
+- GitHub main triggers Cloudflare deploy. CI token lacks D1 migration permissions; future schema changes still need an authenticated local migration before publishing.
+- Read CHANGELOG.md and docs/HABIT_TRACKER_PLAN.md before further edits.
 
-The app shipped a full visual redesign after the 8 stages above were already done: dark-by-default true-black theme, translucent glass panels, Heebo typeface, emerald/gold accent palette, Activity-style ring for goal progress. See the CHANGELOG entry "design v3 shipped" for details and open items. This was a styling pass only — no data model or API changes.
+## Verification for this refocus
+Typecheck, all three domain tests and production build passed. Local API test passed: habit creation, mark, reload, undo, soft delete, anonymous rejection. No production records were changed by QA. Temporary localhost-only session fixture was removed before the final build. Original SleepView, Finance and backend files are unchanged.
+
+Visual QA remains open: the browser tool reported no available browsers, so desktop/mobile layouts were reviewed in source but not rendered interactively. Publishing uses the existing GitHub workflow; verify its run for the exact commit before declaring deployment success.

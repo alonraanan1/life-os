@@ -1,13 +1,8 @@
-import {Database,Flame,Home,ListTodo,Moon,Target,Timeline,WalletCards} from 'lucide-react';
+import {Database,Flame,WalletCards} from 'lucide-react';
 export type View='today'|'finance'|'tasks'|'habits'|'sleep'|'goals'|'timeline'|'data';
 export const navItems=[
-  {id:'today' as View,label:'היום',icon:Home},
-  {id:'finance' as View,label:'כספים',icon:WalletCards},
-  {id:'tasks' as View,label:'משימות',icon:ListTodo},
   {id:'habits' as View,label:'הרגלים',icon:Flame},
-  {id:'sleep' as View,label:'שינה',icon:Moon},
-  {id:'goals' as View,label:'מטרות',icon:Target},
-  {id:'timeline' as View,label:'ציר הזמן',icon:Timeline},
+  {id:'finance' as View,label:'כספים',icon:WalletCards},
 ];
 export const dataNav={id:'data' as View,label:'הנתונים שלי',icon:Database};
-export const viewTitles:Record<View,string>={today:'היום',finance:'הכספים שלי',tasks:'המשימות שלי',habits:'ההרגלים שלי',sleep:'השינה שלי',goals:'המטרות שלי',timeline:'ציר הזמן',data:'הנתונים שלי'};
+export const viewTitles:Record<View,string>={today:'ההרגלים שלי',finance:'הכספים שלי',tasks:'ההרגלים שלי',habits:'ההרגלים שלי',sleep:'ההרגלים שלי',goals:'ההרגלים שלי',timeline:'ההרגלים שלי',data:'הנתונים שלי'};

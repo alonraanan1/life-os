@@ -516,3 +516,47 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .quiet-action,.link-button,.balance-heading button{white-space:nowrap}
 .module-header{gap:12px}
 .module-header>div:first-child{min-width:0}
+
+/* Habit tracking is the primary workspace: give the daily result one quiet,
+   readable anchor before the longer history rows. */
+.habit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.habit-date-control{margin:0;gap:4px;flex-wrap:nowrap}
+.habit-date-control>label{display:flex;align-items:center;gap:10px;color:var(--text-2);font-size:13px;font-weight:600}
+.habit-date-control .icon-action{min-width:36px;min-height:38px;color:var(--text-2)}
+.habit-date-control .icon-action:disabled{opacity:.28;cursor:not-allowed}
+.habit-date-control input{min-height:40px}
+.today-jump{min-height:38px;margin-inline-start:6px;padding-inline:10px;font-size:13px}
+.habit-summary{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:4px 0 20px;padding:18px 20px;border:1px solid var(--stroke);border-radius:16px;background:var(--surface-2)}
+.habit-summary-copy{display:grid;gap:3px;min-width:0}
+.habit-summary-copy>span{font-size:13px;color:var(--text-2);font-weight:600}
+.habit-summary-copy>strong{font-size:28px;line-height:1.15;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.habit-summary-copy>small{font-size:12px;color:var(--text-3)}
+.habit-progress{width:min(180px,32%);height:8px;overflow:hidden;border-radius:999px;background:var(--stroke-strong)}
+.habit-progress span{display:block;height:100%;border-radius:inherit;background:var(--brand);transition:width 220ms ease}
+.habit-list{min-width:0}
+.habit-record+.habit-record{border-top:1px solid var(--stroke);padding-top:8px}
+.habit-list .record-row{border-top:0}
+.habit-record .record-body small{display:flex;align-items:center;gap:4px;white-space:normal}
+.habit-record .record-body small svg{flex:none;color:var(--gold)}
+@media(max-width:620px){
+ .habit-toolbar{display:block}
+ .habit-date-control{justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+ .habit-date-control>label{flex:1;justify-content:center}
+ .habit-date-control input{max-width:150px}
+ .habit-date-control .today-jump{flex:1 0 100%;margin-inline-start:0}
+ .habit-toolbar .filter-row{width:100%;justify-content:stretch}
+ .habit-toolbar .filter-row button{flex:1}
+ .habit-summary{padding:16px;gap:14px}
+ .habit-progress{width:30%;min-width:72px}
+}
+@media(max-width:480px){
+ .habit-summary-copy>strong{font-size:25px}
+ .habit-summary-copy>small{font-size:11px}
+ .habit-record .record-row{gap:7px;align-items:flex-start}
+ .habit-record .habit-emoji{padding-top:9px}
+ .habit-record .record-body{padding-top:5px}
+ .habit-record .record-body p{line-height:1.35}
+ .habit-record .record-body small{line-height:1.45}
+ .habit-mark{min-width:40px;padding-inline:8px;margin-top:4px}
+ .habit-record .icon-action{min-width:34px}
+}

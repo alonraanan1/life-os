@@ -4,13 +4,8 @@ import {useEffect,useState} from 'react';
 import {AuthGate} from '@/components/life/auth-gate';
 import {LifeProvider,useLife} from '@/components/life/use-life';
 import {dataNav,navItems,viewTitles,type View} from '@/components/life/nav';
-import {TodayView} from '@/components/life/today';
 import {FinanceView} from '@/components/life/finance';
-import {TasksView} from '@/components/life/tasks';
 import {HabitsView} from '@/components/life/habits';
-import {GoalsView,CheckinsView} from '@/components/life/goals';
-import {SleepView} from '@/components/life/sleep';
-import {TimelineView} from '@/components/life/timeline';
 import {DataView} from '@/components/life/data';
 import type {Entry} from '@/lib/life-model';
 
@@ -20,7 +15,7 @@ function greetingFor(hour:number){return hour<5?'לילה טוב':hour<12?'בו�
 
 function Dashboard(){
   const {records,loading,error,clearError,refresh}=useLife();
-  const [view,setView]=useState<View>('today');
+  const [view,setView]=useState<View>('habits');
   const [clock,setClock]=useState({date:'',greeting:''});
   const settings=records.find(record=>record.id==='settings'&&!record.deletedAt) as Entry<'settings'>|undefined;
   const name=settings?.data.name?.trim()||'';
@@ -56,14 +51,8 @@ function Dashboard(){
         <AppHeader view={view} name={name} dateLabel={clock.date} greeting={clock.greeting} onProfile={()=>go('data')}/>
         {error&&<div className="app-error" role="alert"><span>{error}</span><button onClick={()=>{clearError();void refresh();}}>נסה שוב</button></div>}
         {loading?<output className="app-status">טוען את הנתונים שלך…</output>:
-          view==='today'?<TodayView onNavigate={go}/>:
           view==='finance'?<FinanceView/>:
-          view==='tasks'?<TasksView/>:
-          view==='habits'?<HabitsView/>:
-          view==='sleep'?<SleepView/>:
-          view==='goals'?<GoalsView/>:
-          view==='timeline'?<><CheckinsView/><TimelineView/></>:
-          <DataView/>}
+          view==='data'?<DataView/>:<HabitsView/>}
       </main>
       <MobileNav view={view} onNavigate={go}/>
     </div>
@@ -78,8 +67,8 @@ function Sidebar({view,onNavigate}:{view:View;onNavigate:(next:View)=>void}){
         <button key={id} onClick={()=>onNavigate(id)} aria-current={view===id?'page':undefined} className={`nav-item ${view===id?'active':''}`}><Icon/>{label}</button>)}
     </nav>
     <div className="mt-auto border-t border-[var(--stroke)] px-3 pt-5">
-      <p className="text-xs font-bold text-[var(--gold)]">טיפ יומי</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">עדכון קטן בכל יום הופך את התמונה הגדולה לברורה.</p>
+      <p className="text-xs font-bold text-[var(--gold)]">קצב אישי</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">סימון קטן היום בונה רצף שאפשר לראות.</p>
     </div>
   </aside>;
 }
@@ -87,19 +76,19 @@ function Sidebar({view,onNavigate}:{view:View;onNavigate:(next:View)=>void}){
 function Brand(){
   return <div className="mb-10 flex items-center gap-3 px-3">
     <div className="grid size-10 place-items-center rounded-xl bg-[var(--brand)] text-lg font-semibold text-[var(--brand-ink)]">L</div>
-    <div><p className="text-lg font-semibold">Life OS</p><p className="text-xs text-[var(--text-2)]">הכל במקום אחד</p></div>
+    <div><p className="text-lg font-semibold">Life OS</p><p className="text-xs text-[var(--text-2)]">הרגלים בקצב שלך</p></div>
   </div>;
 }
 
 function MobileNav({view,onNavigate}:{view:View;onNavigate:(next:View)=>void}){
   return <nav className="mobile-bar" aria-label="ניווט נייד">
-    {navItems.map(({id,label,icon:Icon})=>
+    {[...navItems,dataNav].map(({id,label,icon:Icon})=>
       <button key={id} onClick={()=>onNavigate(id)} aria-current={view===id?'page':undefined} className={`mobile-nav ${view===id?'active':''}`}><span><Icon/></span>{label}</button>)}
   </nav>;
 }
 
 function AppHeader({view,name,dateLabel,greeting,onProfile}:{view:View;name:string;dateLabel:string;greeting:string;onProfile:()=>void}){
-  const heading=view==='today'?[greeting,name].filter(Boolean).join(', ')||'היום':viewTitles[view];
+  const heading=view==='habits'?[greeting,name].filter(Boolean).join(', ')||viewTitles[view]:viewTitles[view];
   const initials=name?name.trim().slice(0,2):'';
   return <header className="app-header">
     <div>
