@@ -422,10 +422,27 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .habit-history{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding-top:10px;max-width:480px}
 /* The visible dot stays small and quiet; the button itself keeps the full
    44px tap target via min-width/min-height, not via a large dot. */
-.habit-history button{position:relative;display:grid;place-items:center;min-width:44px;min-height:44px;padding:0;border-radius:12px}
-.habit-history button::before{content:'';width:9px;height:9px;border-radius:50%;border:1.5px solid var(--stroke-strong);background:transparent}
+/* No min-width: seven 44px columns plus gaps need 344px, which is wider than
+   the grid gets on a phone, so the row overflowed instead of compressing and
+   drifted out of line with the week header above it. The column itself is the
+   touch target — full width of its track, 44px tall. */
+.habit-history button{position:relative;display:grid;place-items:center;width:100%;min-height:44px;padding:0;border-radius:12px}
+/* Four states told apart by shape, not by shades of grey: a filled disc for
+   done, the same-size ring with a small filled centre for a day started but
+   not finished, an open ring the same size for a day still waiting, and a
+   small flat dot for a day that was never on the schedule. Opacity alone was
+   not legible on a white ground. */
+.habit-history button::before{content:'';width:13px;height:13px;border-radius:50%;border:1.75px solid var(--text-3);background:transparent;transition:transform 140ms cubic-bezier(.23,1,.32,1)}
 .habit-history button.marked::before{background:var(--success);border-color:var(--success)}
-.habit-history button.muted::before{border-color:var(--stroke);opacity:.55}
+.habit-history button.partial::before{border-color:var(--success)}
+/* Both dots share one grid cell and are centred by the button's own
+   place-items, rather than being positioned absolutely: an inset-inline-start
+   plus a translate resolves to opposite directions under RTL and left the
+   inner dot 5px off centre inside a 13px ring. */
+.habit-history button::before{grid-area:1/1}
+.habit-history button.partial::after{content:'';grid-area:1/1;place-self:center;width:5px;height:5px;border-radius:50%;background:var(--success)}
+.habit-history button.muted::before{width:5px;height:5px;border:0;background:var(--stroke-strong)}
+.habit-history button:not(:disabled):active::before{transform:scale(.88)}
 .habit-history button:disabled{cursor:not-allowed}
 .day-picker{display:flex;flex-wrap:wrap;gap:12px}
 .day-picker legend{font-size:14px;margin-bottom:12px;color:var(--text-2)}
@@ -439,11 +456,15 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .finance-metrics small{display:block;color:var(--text-2);font-size:13px;margin-bottom:8px}
 .finance-metrics strong{font-size:19px;font-weight:700}
 .category-breakdown{margin:30px 0 8px}
-.category-breakdown h3{font-size:16px;font-weight:700;margin-bottom:18px}
+.category-breakdown h3{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px;font-weight:700;margin-bottom:18px}
 .category-breakdown>div{display:grid;grid-template-columns:100px 1fr 110px;align-items:center;gap:18px;padding:10px 0;font-size:14px}
 .category-breakdown bdi{text-align:left;font-variant-numeric:tabular-nums}
-.category-meter{height:5px;border-radius:9px;background:var(--stroke-strong);overflow:hidden}
-.category-meter i{display:block;background:var(--brand);height:100%;border-radius:9px}
+.fund-key{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-3)}
+.fund-key i{width:7px;height:7px;border-radius:50%;flex:none}
+.category-meter{height:5px;border-radius:9px;background:var(--stroke-strong);overflow:hidden;display:flex}
+.category-meter i{display:block;height:100%;flex:none}
+i.fund-me{background:var(--brand)}
+i.fund-dad{background:var(--gold)}
 .income{color:var(--income)}
 .field-help{font-size:13.5px;color:var(--text-3);line-height:1.7}
 @media(max-width:480px){.finance-metrics{gap:10px}.finance-metrics strong{font-size:16px}.category-breakdown>div{grid-template-columns:75px 1fr 85px;gap:10px}}
