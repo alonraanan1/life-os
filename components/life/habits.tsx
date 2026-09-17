@@ -18,7 +18,7 @@ function readableDate(date:string){
 }
 
 export function HabitsView({compact=false}:{compact?:boolean}){
-  const {records,save,busy}=useLife();
+  const {records,save,busy,pending}=useLife();
   const [today,setToday]=useState(todayKey());
   const todayRef=useRef(today);
   const [date,setDate]=useState(todayKey());
@@ -54,8 +54,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     if(next<=today)setDate(next);
   }
 
+  function entryId(habitId:string,day:string){return 'entry:'+habitId+':'+day;}
+
   async function toggle(h:Entry<'habit'>,day:string){
-    const id='entry:'+h.id+':'+day;
+    const id=entryId(h.id,day);
     const old=records.find(e=>e.id===id) as Entry<'habitEntry'>|undefined;
     await save('habitEntry',{habitId:h.id,date:day,done:!(old&&!old.deletedAt&&old.data.done)},old,id);
   }
@@ -111,7 +113,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               <small className="habit-schedule">{scheduleLabel}</small>
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={busy||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
               {!compact&&<button className="icon-action danger" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
             </div>
@@ -120,7 +122,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
             {week.map(day=>{
               const marked=entries.some(e=>e.data.habitId===h.id&&e.data.date===day&&e.data.done);
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':''} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={busy||!canMark} onClick={()=>{void toggle(h,day).catch(()=>{});}}>
+              return <button key={day} className={marked?'marked':''} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{void toggle(h,day).catch(()=>{});}}>
                 <span>{new Date(day+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'short'})}</span>
                 <b>{marked?<Check size={16}/>:new Date(day+'T12:00:00Z').getUTCDate()}</b>
               </button>;
