@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Check,ChevronLeft,ChevronRight,Flame,Pencil,Plus,Trash2} from 'lucide-react';
 import {calendarWeek,dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
 import {select,useLife} from './use-life';
@@ -88,7 +88,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         <small>{dueHabits.length?(completed===dueHabits.length?'כל ההרגלים הושלמו':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
       </div>
       <div className="habit-progress" role="progressbar" aria-label="השלמת ההרגלים המתוכננים" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}>
-        <span style={{width:completionPercent+'%'}}/>
+        <span style={{'--pct':completionPercent/100} as CSSProperties}/>
       </div>
     </div>
 
