@@ -16,6 +16,6 @@ export function AuthGate({children}:{children:ReactNode}) {
   },[]);
   if(status==='ready')return children;
   return <main className="auth-shell" dir="rtl"><div className="auth-brand">Life OS <span>המרחב האישי שלך</span></div><section className="auth-panel"><LockKeyhole size={30}/><h1>טוב שחזרת.</h1><p>המרחב הזה פתוח רק לחשבון שלך. התחברות אחת בכל מכשיר, ואתה נשאר מחובר.</p>
-  {status==='loading'?<output>מתחבר…</output>:status==='error'?<button className="primary-action" onClick={()=>{setStatus('loading');void check();}}>נסה שוב</button>:<button className="google-action" onClick={()=>{window.location.assign('/api/auth/google');}}><LogIn size={18}/>התחברות עם Google</button>}
+  {status==='loading'?<output className="auth-loading">מתחבר…</output>:status==='error'?<button className="primary-action" onClick={()=>{setStatus('loading');void check();}}>נסה שוב</button>:<button className="google-action" onClick={()=>{window.location.assign('/api/auth/google');}}><LogIn size={18}/>התחברות עם Google</button>}
   {error&&<p role="alert" className="form-error">{error}</p>}</section></main>;
 }

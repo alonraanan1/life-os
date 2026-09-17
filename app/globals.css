@@ -69,6 +69,7 @@
     --danger:#d84a36; --danger-tint: rgba(216,74,54,.10);
     --income:#1f8a57;
     --blur:20px;
+    --bar:rgba(255,255,255,.88);
   }
 }
 @layer base {
@@ -215,7 +216,6 @@
   }
 }
 /* App chrome, precise typography, and a shared responsive rhythm. */
-:root { --muted-foreground: var(--text-2); --radius: 1rem; }
 html { font-family: var(--font-hebrew), -apple-system, BlinkMacSystemFont, Arial, sans-serif; }
 body { margin: 0; -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); position: relative; }
 body::before, body::after { content: ''; position: fixed; z-index: -1; border-radius: 50%; filter: blur(70px); pointer-events: none; }
@@ -239,6 +239,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .budget-summary { margin-bottom: 0; padding: 26px 24px 22px; border-radius: 22px; background: linear-gradient(155deg, var(--surface-2), var(--surface)); border: 1px solid var(--stroke); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); position: relative; isolation: isolate; overflow: hidden; color: var(--text); }
 .budget-summary::after { content: ''; position: absolute; inset-inline-end: -60px; top: -80px; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, var(--brand-tint-strong), transparent 70%); z-index: -1; }
 .balance-value { margin-top: 6px; font-size: clamp(2.25rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: tabular-nums; }
 .budget-summary > div:nth-child(2) { height: 6px; margin-top: 20px; border-radius: 6px; overflow: hidden; background: var(--stroke-strong); }
 .budget-summary > div:last-child { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--stroke); }
 .budget-summary .text-white\/65, .budget-summary .text-white\/55 { color: var(--text-2); }
@@ -295,6 +296,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .auth-panel>svg{color:var(--brand);margin-bottom:24px}
 .auth-panel h1{font-size:32px;font-weight:700;letter-spacing:-.03em;color:var(--text)}
 .auth-panel>p{color:var(--text-2);line-height:1.8;margin:14px 0 28px}
+.auth-loading{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:30px;color:var(--text-2);font-size:16px}
 .life-form{display:grid;gap:18px}
 .life-form label{display:grid;gap:8px;font-size:14px;font-weight:600;color:var(--text-2)}
 .life-form input,.life-form select,.life-form textarea{width:100%;background:var(--surface-2);color:var(--text);border:1px solid var(--stroke);border-radius:12px;min-height:44px;padding:10px 14px;font-size:16px}
@@ -310,6 +312,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .quiet-action:disabled,.icon-action:disabled{opacity:.5;cursor:wait}
 .icon-action{display:grid;place-items:center;min-width:40px;min-height:44px;color:var(--text-3);border-radius:10px}
 .icon-action:hover{background:var(--surface-2);color:var(--text)}
+.icon-action.danger:hover,.icon-action.danger:focus-visible{background:var(--danger-tint);color:var(--danger)}
 .module-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
 .module-header h2{font-size:20px;font-weight:700;letter-spacing:-.02em}
 .module-header p{color:var(--text-2);font-size:14px;margin-top:6px}
@@ -332,7 +335,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .app-main>section .record-row,.content-flow>section .record-row{padding-inline:0}
 .date-control{display:flex;gap:14px;align-items:center;font-size:14px;margin-bottom:22px;color:var(--text-2)}
 .date-control input{padding:8px 12px;border:1px solid var(--stroke);border-radius:10px;background:var(--surface-2);color:var(--text);min-height:44px;font-size:16px}
-.habit-emoji{font-size:24px}
+.habit-emoji{display:flex;align-items:center;flex-shrink:0;color:var(--text-2)}
 .habit-record{margin-bottom:8px}
 .habit-record:last-child{margin-bottom:0}
 .habit-mark{min-width:44px;min-height:38px;display:grid;place-items:center;border:1px solid var(--stroke-strong);background:var(--surface-2);color:var(--brand);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}
@@ -357,7 +360,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .category-breakdown{margin:30px 0 8px}
 .category-breakdown h3{font-size:16px;font-weight:700;margin-bottom:18px}
 .category-breakdown>div{display:grid;grid-template-columns:100px 1fr 110px;align-items:center;gap:18px;padding:10px 0;font-size:14px}
-.category-breakdown bdi{text-align:left}
+.category-breakdown bdi{text-align:left;font-variant-numeric:tabular-nums}
 .category-meter{height:5px;border-radius:9px;background:var(--stroke-strong);overflow:hidden}
 .category-meter i{display:block;background:var(--brand);height:100%;border-radius:9px}
 .income{color:var(--income)}
@@ -447,7 +450,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .chart-hits button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:6px}
 .dad-card{margin-top:16px;padding:18px;border:1px solid var(--gold-tint);background:var(--gold-tint);border-radius:18px}
 .dad-head small{display:block;font-size:12.5px;color:var(--text-2);font-weight:600}
-.dad-head strong{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold)}
+.dad-head strong{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold);font-variant-numeric:tabular-nums}
 .dad-head span{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
 .dad-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px}
 .dad-row:first-of-type{margin-top:12px}
@@ -499,7 +502,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 /* The tab bar sits over scrolling content, so it needs a near-opaque ground of
    its own — the standard glass surface is far too sheer to read against text. */
 :root{--bar:rgba(12,12,12,.86)}
-@media(prefers-color-scheme:light){:root{--bar:rgba(255,255,255,.88)}}
 .mobile-bar{background:var(--bar)}
 /* A card that stretches across both columns reads as a row, not as a tile with
    a dead half beside it. */
@@ -526,7 +528,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .habit-summary{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:4px 0 20px;padding:18px 20px;border:1px solid var(--stroke);border-radius:16px;background:var(--surface-2)}
 .habit-summary-copy{display:grid;gap:3px;min-width:0}
 .habit-summary-copy>span{font-size:13px;color:var(--text-2);font-weight:600}
-.habit-summary-copy>strong{font-size:28px;line-height:1.15;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.habit-summary-copy>strong{font-size:24px;line-height:1.15;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .habit-summary-copy>small{font-size:12px;color:var(--text-3)}
 .habit-progress{width:min(180px,32%);height:8px;overflow:hidden;border-radius:999px;background:var(--stroke-strong)}
 .habit-progress span{display:block;width:100%;height:100%;border-radius:inherit;background:var(--brand);transform:scaleX(var(--pct,0));transform-origin:right;transition:transform 220ms ease}
@@ -537,7 +539,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .habit-record .record-body small svg{flex:none;color:var(--gold)}
 .app-main>section.habits-view,.app-main>section.sleep-view{background:transparent;border:0;border-radius:0;padding:0;backdrop-filter:none;-webkit-backdrop-filter:none;margin-bottom:32px}
 .habit-summary{padding:12px 0;margin:2px 0 18px;border:0;border-bottom:1px solid var(--stroke);border-radius:0;background:transparent}
-.habit-summary-copy>strong{font-size:24px}
 .habit-schedule{color:var(--text-2)!important;margin-top:2px!important}
 .habit-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
 .habit-record .habit-mark,.habit-record .icon-action{min-width:44px;min-height:44px}
@@ -556,7 +557,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
  .habit-summary-copy>strong{font-size:25px}
  .habit-summary-copy>small{font-size:11px}
  .habit-record .record-row{gap:7px;align-items:flex-start}
- .habit-record .habit-emoji{padding-top:9px}
+ .habit-record .habit-emoji{padding-top:5px}
  .habit-record .record-body{padding-top:5px}
  .habit-record .record-body p{line-height:1.35}
  .habit-record .record-body small{line-height:1.45}

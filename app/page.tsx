@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useState} from 'react';
+import {User} from 'lucide-react';
 import {AuthGate} from '@/components/life/auth-gate';
 import {LifeProvider,useLife} from '@/components/life/use-life';
 import {dataNav,navItems,viewTitles,type View} from '@/components/life/nav';
@@ -96,7 +97,7 @@ function AppHeader({view,name,dateLabel,greeting,onProfile}:{view:View;name:stri
       <h1 className="page-heading">{heading}</h1>
     </div>
     <button onClick={onProfile} aria-label="הנתונים והפרופיל שלי" className="grid size-11 place-items-center rounded-full bg-[var(--surface-2)] border border-[var(--stroke)] text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
-      {initials||<span aria-hidden="true">☰</span>}
+      {initials||<User size={20} aria-hidden="true"/>}
     </button>
   </header>;
 }
