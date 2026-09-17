@@ -1,8 +1,9 @@
 'use client';
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
-import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Trash2,Wind} from 'lucide-react';
+import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
 import {calendarWeek,dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
+import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
 import {SleepView} from './sleep';
@@ -18,7 +19,7 @@ function readableDate(date:string){
 }
 
 export function HabitsView({compact=false}:{compact?:boolean}){
-  const {records,save,busy,pending}=useLife();
+  const {records,save,pending}=useLife();
   const [today,setToday]=useState(todayKey());
   const todayRef=useRef(today);
   const [date,setDate]=useState(todayKey());
@@ -80,10 +81,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         <button className="icon-action" aria-label="היום הבא" onClick={()=>moveDate(1)} disabled={selected>=today}><ChevronLeft size={17}/></button>
         {selected!==today&&<button className="quiet-action today-jump" onClick={()=>setDate(today)}>חזרה להיום</button>}
       </div>
-      <div className="filter-row" aria-label="סינון הרגלים">
+      {dueHabits.length!==habits.length&&<div className="filter-row" aria-label="סינון הרגלים">
         <button className={filter==='scheduled'?'selected':''} aria-pressed={filter==='scheduled'} onClick={()=>setFilter('scheduled')}>מתוכננים ליום</button>
         <button className={filter==='all'?'selected':''} aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>כל ההרגלים</button>
-      </div>
+      </div>}
     </div>}
 
     <div className="habit-summary" aria-label="סיכום ביצועי הרגלים">
@@ -97,35 +98,40 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       </div>
     </div>
 
+    {!compact&&!!visible.length&&<div className="habit-week-header" aria-hidden="true">
+      {week.map(day=><div key={day}><span>{new Date(day+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'short'})}</span><b>{new Date(day+'T12:00:00Z').getUTCDate()}</b></div>)}
+    </div>}
+
     <div className="habit-list">
       {visible.map(h=>{
         const done=entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done);
         const due=scheduled(h.data,selected);
         const streakDays=streak(h,entries,selected);
-        const scheduleLabel=h.data.days.length===7?'כל יום':h.data.days.map(day=>days[day]).join(' · ');
+        const showSchedule=h.data.days.length!==7;
+        const showStreak=streakDays>=2;
+        const scheduleLabel=h.data.days.map(day=>days[day]).join(' · ');
         const HabitIcon=habitIcon(h.data.emoji);
         return <div key={h.id} className="habit-record">
           <div className="record-row">
             <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
             <div className="record-body">
               <p>{h.data.title}</p>
-              <small><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</small>
-              <small className="habit-schedule">{scheduleLabel}</small>
+              {(showStreak||showSchedule)&&<small className="habit-schedule">
+                {showStreak&&<><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</>}
+                {showStreak&&showSchedule&&' · '}
+                {showSchedule&&scheduleLabel}
+              </small>}
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
-              {!compact&&<button className="icon-action danger" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
             </div>
           </div>
           {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
             {week.map(day=>{
               const marked=entries.some(e=>e.data.habitId===h.id&&e.data.date===day&&e.data.done);
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':''} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{void toggle(h,day).catch(()=>{});}}>
-                <span>{new Date(day+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'short'})}</span>
-                <b>{marked?<Check size={16}/>:new Date(day+'T12:00:00Z').getUTCDate()}</b>
-              </button>;
+              return <button key={day} className={marked?'marked':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
             })}
           </div>}
         </div>;
@@ -134,7 +140,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>setEditing(null)}/>}
 
-    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number)},editing||undefined)}>
+    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number)},editing||undefined)} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>
       <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{emojiOptions.map(([emoji,label])=><option key={emoji} value={emoji}>{label}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
