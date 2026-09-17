@@ -1,5 +1,9 @@
 # Product Design System
 
+This document defines Life OS's design philosophy and quality bar. It is not a spec of the current screens; the CSS custom properties in `app/globals.css` are the palette of record (see section 31).
+
+Last reconciled with the shipped design: 2026-09-17.
+
 ## 1. Design Direction
 
 The product should feel:
@@ -57,9 +61,9 @@ When choosing between complexity and clarity, prefer clarity.
 
 Do NOT automatically use:
 
-- gradient backgrounds
-- glowing gradients
-- excessive glassmorphism
+- arbitrary or decorative gradient backgrounds
+- rainbow or attention-grabbing glow effects
+- glassmorphism applied without a token system behind it
 - decorative blobs
 - neon accent colors
 - giant rounded rectangles
@@ -82,6 +86,16 @@ Do NOT automatically use:
 Do not make every section visually independent.
 
 Pages should feel like coherent compositions rather than collections of components.
+
+This is not a ban on the shipped material system.
+
+Life OS uses a deliberate dark-glass language: true-black background, translucent backdrop-blurred surfaces, and two low-opacity ambient glows (emerald, gold) placed behind the page and behind the money cards.
+
+That system is bounded and token-driven. Every surface, glow, and blur value comes from the CSS custom properties in `app/globals.css`, not invented per component.
+
+The prohibition above targets ungoverned decoration: arbitrary gradients, rainbow palettes, attention-grabbing glow. It does not undo the approved direction.
+
+Do not add a new gradient, glow, or blur outside those tokens.
 
 ---
 
@@ -683,3 +697,34 @@ remove,
 simplify,
 align,
 and improve hierarchy.
+
+---
+
+## 31. Design System of Record (Tokens)
+
+The palette and material system that ship today live in `app/globals.css`, as CSS custom properties on `:root`.
+
+Core tokens:
+
+- `--bg` — page background (true black).
+- `--brand` — primary emerald accent; `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
+- `--gold` — secondary accent; `--gold-tint` is its low-opacity fill.
+- `--surface` / `--surface-2` / `--surface-solid` — translucent glass panel backgrounds, from faint to solid.
+- `--stroke` / `--stroke-strong` — hairline borders for glass edges.
+- `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps.
+- `--glow-a` (emerald) / `--glow-b` (gold) — the two low-opacity ambient glows placed behind the page and behind the money cards.
+- `--blur` — the backdrop-blur radius used by every glass surface.
+
+This is the palette of record. Change color, glow, or blur by editing these tokens, not by hunting through component files for hardcoded values.
+
+Light mode is automatic. A `prefers-color-scheme: light` block overrides the same token names with a light-appropriate set. There is no manual light/dark toggle; do not build one without a deliberate decision to add it.
+
+---
+
+## 32. Direction and RTL
+
+Life OS is Hebrew-first and right-to-left.
+
+Use logical CSS properties (`margin-inline-start`, `padding-inline-end`, `inset-inline-start`, `text-align: start`, and similar) instead of physical `left` / `right` properties, so layout stays correct under RTL.
+
+Do not hardcode `left` or `right` for direction-sensitive spacing or positioning.
