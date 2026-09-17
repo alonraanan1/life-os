@@ -19,6 +19,17 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-18 — Codex — Reliable pending saves and protection from stale refreshes
+- **Summary:** Continued Claude's explicitly deferred data-layer fix: each record's pending indicator now comes from an immutable React state snapshot. Refreshes started before a save can no longer overwrite its optimistic/server result or show an obsolete error.
+- **Files touched:** `components/life/use-life.tsx`, `tests/use-life.test.mjs`, `package.json`, `package-lock.json`, `CHANGELOG.md`.
+- **Validation:** Typecheck, 22/22 tests (12 existing domain tests plus 10 real React provider regressions), and production build passed. Six provider regressions fail against the previous implementation. Browser-tested the actual HabitsView/LifeProvider with isolated local fixture requests: parallel saves release independently, a failed save rolls back without losing another save, and 390px/1280px layouts have no horizontal overflow or browser console warnings/errors. An independent agent reviewed the diff and reran the provider tests. Full lint still exits 1 with 246 existing findings, mostly bundled `.claude/skills` scripts and pre-existing UI/compiler issues; the provider's existing `EffectSetState` finding was verified against the previous commit, and the new test file passes scoped lint.
+- **Open items / notes for the next AI:**
+  - Keep the ref for synchronous same-record admission, but render `pending()` and derive `busy` from the immutable state snapshot. Never mutate a set already published to React state. Different records must remain independently writable.
+  - An admitted save increments the refresh generation. Stale refresh data, errors and loading completion are ignored; the final save releases loading if it overtook an initial request. The current dashboard hides save controls during initial loading; the synthetic test for that edge verifies loading recovery, not full hydration of unrelated records before initial loading finishes.
+  - `jsdom@26.1.0` is a test-only dependency compatible with the project's declared Node minimum. Tests compile the actual TSX provider with the existing TypeScript dependency and exercise it through React; no authentication bypass or QA route is shipped. Temporary browser fixture source was removed. Live Google OAuth/D1 were not exercised.
+  - Legacy habit counts/funders, the partial-day streak rule, light palette and APIs remain unchanged. No migration is needed. The owner's iPhone shortcut still needs the manual numeric Ask for Input step described in Claude's entry below.
+  - An explicit refresh requested while any save is pending still skips immediately, as before; queuing an import/focus refresh is separate follow-up work.
+
 ### 2026-09-18 — Claude (Claude Code) — Habits can count, and spending knows who paid
 - **Summary:** Two features the owner asked for. A habit can now have a daily target above one, so vitamins are three separate sub-marks in a day. And a transaction now records who funded it, so the category breakdown shows his own spending in blue against his father's in gold on the same category — the point being to see at a glance how much of a category is actually coming from dad.
 - **Files touched:** `lib/life-model.ts`, `components/life/habits.tsx`, `components/life/finance.tsx`, `app/api/hub/route.ts`, `app/globals.css`, `tests/model.test.mjs`.
