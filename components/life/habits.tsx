@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
-import {Check,ChevronLeft,ChevronRight,Flame,Pencil,Plus,Trash2} from 'lucide-react';
+import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Trash2,Wind} from 'lucide-react';
 import {calendarWeek,dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
@@ -9,6 +9,9 @@ import {SleepView} from './sleep';
 
 const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 type HabitFilter='scheduled'|'all';
+const emojiOptions:[string,string][]=[['🌱','צמיחה'],['💧','שתייה'],['📚','קריאה'],['🚶','הליכה'],['🧘','מדיטציה'],['🏃','ריצה'],['💪','כוח'],['🛌','שינה']];
+const emojiIcons:Record<string,typeof Circle>={'🌱':Sprout,'💧':Droplet,'📚':BookOpen,'🚶':Footprints,'🧘':Wind,'🏃':Activity,'💪':Dumbbell,'🛌':Bed};
+function habitIcon(emoji:string){return emojiIcons[emoji]||Circle;}
 
 function readableDate(date:string){
   return new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'}).format(new Date(date+'T12:00:00Z'));
@@ -98,9 +101,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         const due=scheduled(h.data,selected);
         const streakDays=streak(h,entries,selected);
         const scheduleLabel=h.data.days.length===7?'כל יום':h.data.days.map(day=>days[day]).join(' · ');
+        const HabitIcon=habitIcon(h.data.emoji);
         return <div key={h.id} className="habit-record">
           <div className="record-row">
-            <span className="habit-emoji" aria-hidden="true">{h.data.emoji}</span>
+            <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
             <div className="record-body">
               <p>{h.data.title}</p>
               <small><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</small>
@@ -109,7 +113,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
             <div className="habit-actions">
               <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={busy||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
-              {!compact&&<button className="icon-action" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
+              {!compact&&<button className="icon-action danger" disabled={busy} aria-label={'מחיקת '+h.data.title} onClick={()=>{void save('habit',h.data,h,undefined,true).catch(()=>{});}}><Trash2 size={16}/></button>}
             </div>
           </div>
           {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
@@ -130,7 +134,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number)},editing||undefined)}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>
-      <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{['🌱','💧','📚','🚶','🧘','🏃','💪','🛌'].map(emoji=><option key={emoji}>{emoji}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
+      <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{emojiOptions.map(([emoji,label])=><option key={emoji} value={emoji}>{label}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>
