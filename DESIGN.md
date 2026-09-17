@@ -2,7 +2,7 @@
 
 This document defines Life OS's design philosophy and quality bar. It is not a spec of the current screens; the CSS custom properties in `app/globals.css` are the palette of record (see section 31).
 
-Last reconciled with the shipped design: 2026-09-17.
+Last reconciled with the shipped design: 2026-09-18.
 
 ## 1. Design Direction
 
@@ -89,13 +89,13 @@ Pages should feel like coherent compositions rather than collections of componen
 
 This is not a ban on the shipped material system.
 
-Life OS uses a deliberate dark-glass language: true-black background, translucent backdrop-blurred surfaces, and two low-opacity ambient glows (emerald, gold) placed behind the page and behind the money cards.
+Life OS uses a deliberate light "Liquid Glass" language on an Apple-white ground: opaque content surfaces, translucent backdrop-blurred chrome reserved for the elements that float above content (the mobile tab bar, the desktop sidebar, the modal editor, the segmented filter control, the habit mark pill), and two low-opacity ambient washes (brand blue, gold) placed behind that floating chrome so the glass has something to refract.
 
-That system is bounded and token-driven. Every surface, glow, and blur value comes from the CSS custom properties in `app/globals.css`, not invented per component.
+That system is bounded and token-driven. Every surface, glow, blur, and shadow value comes from the CSS custom properties in `app/globals.css`, not invented per component.
 
 The prohibition above targets ungoverned decoration: arbitrary gradients, rainbow palettes, attention-grabbing glow. It does not undo the approved direction.
 
-Do not add a new gradient, glow, or blur outside those tokens.
+Do not add a new gradient, glow, or blur outside those tokens. Do not apply glass to a content surface (panels, cards, the budget summary, record rows) — those stay opaque with a shadow instead.
 
 ---
 
@@ -318,6 +318,8 @@ Maintain accessible contrast.
 Use muted colors for secondary content without making it difficult to read.
 
 If the project already has a brand palette, preserve and refine it rather than replacing it without instruction.
+
+Life OS has one interactive accent and one status color, not an open palette: `--brand` for actions and selection, `--success` reserved for completion states only. See section 31 for the token list. Do not introduce a second general-purpose accent color.
 
 ---
 
@@ -704,20 +706,27 @@ and improve hierarchy.
 
 The palette and material system that ship today live in `app/globals.css`, as CSS custom properties on `:root`.
 
+Light is the only theme. The dark variant was removed outright, not demoted behind a media query. Do not restore it without a deliberate decision to add one back.
+
 Core tokens:
 
-- `--bg` — page background (true black).
-- `--brand` — primary emerald accent; `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
-- `--gold` — secondary accent; `--gold-tint` is its low-opacity fill.
-- `--surface` / `--surface-2` / `--surface-solid` — translucent glass panel backgrounds, from faint to solid.
-- `--stroke` / `--stroke-strong` — hairline borders for glass edges.
-- `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps.
-- `--glow-a` (emerald) / `--glow-b` (gold) — the two low-opacity ambient glows placed behind the page and behind the money cards.
-- `--blur` — the backdrop-blur radius used by every glass surface.
+- `--bg` — page background: an Apple-white parchment ground (`#f5f5f7`), not pure white.
+- `--surface` / `--surface-2` / `--surface-solid` — opaque content-panel backgrounds, from card white to a faint tint.
+- `--stroke` / `--stroke-strong` — hairline borders.
+- `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps, on dark ink (`#1d1d1f`).
+- `--brand` — the single interactive accent, Apple Action Blue (`#0066cc`): links, nav/filter selection, primary buttons, focus rings. `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
+- `--success` — a narrow, deliberate green (`#1f8a57`) that means "completed" only: the habit mark, the daily progress bar, the weekly history dots, goal-reached confirmations. It is not a general-purpose accent. `--income` maps to `--success` by financial convention.
+- `--gold` — kept in its existing narrow semantic role (goal amounts, the dad-card).
+- `--danger` / `--danger-ink` — destructive actions and error states.
+- `--glass-bg` / `--glass-bg-dense` / `--glass-highlight` / `--glass-shade` / `--glass-blur` / `--glass-saturate` — the Liquid Glass material: translucency, backdrop blur with saturation, and a specular top-edge highlight.
+- `--shadow-rest` / `--shadow-pill` / `--shadow-float` / `--shadow-modal` — a four-step elevation scale. Every shadow in the app comes from one of these four, not a one-off value.
+- `--glow-a` (brand blue) / `--glow-b` (gold) — two ambient washes at roughly 4-5% opacity, fixed behind the page. Glass is invisible on a flat white ground, so the material needs faint color behind it to refract. They are not decoration.
 
-This is the palette of record. Change color, glow, or blur by editing these tokens, not by hunting through component files for hardcoded values.
+Material discipline: the glass tokens (`--glass-*`, backdrop blur) apply only to chrome that floats above content — the mobile tab bar, the desktop sidebar, the modal editor, the segmented filter control, the habit mark pill. Content surfaces — panels, cards, the budget summary, record rows — stay opaque and use the elevation shadow scale instead.
 
-Light mode is automatic. A `prefers-color-scheme: light` block overrides the same token names with a light-appropriate set. There is no manual light/dark toggle; do not build one without a deliberate decision to add it.
+A `prefers-reduced-transparency: reduce` query drops every glass surface to the same opaque material the content panels already use, and removes the ambient washes.
+
+This is the palette of record. Change color, glow, blur, or shadow by editing these tokens, not by hunting through component files for hardcoded values.
 
 ---
 
