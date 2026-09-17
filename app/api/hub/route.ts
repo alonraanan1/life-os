@@ -1,7 +1,7 @@
 import {json} from '@/lib/auth';
-import {DAD_CATEGORY,money,scheduled,streak,todayKey,validate,type Entry} from '@/lib/life-model';
+import {DAD_CATEGORY,entryCount,habitTarget,money,scheduled,streak,todayKey,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
-import {authorized,database,readBody,upsert} from '@/lib/shortcuts';
+import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
 
 const HABIT='הרגל: ',GOAL='מטרה: ',SLEEP='ציון שינה',CHECKIN='צ׳ק־אין',EXPENSE='הוצאה',DAD='הוצאת אבא',TASK='משימה';
 
@@ -75,15 +75,24 @@ export async function GET(request:Request){
   }catch{return json({error:'storage_unavailable'},503);}
 }
 
-async function markHabit(s:State,title:string){
+// value is how many pills/reps to add for this run, not a replacement count —
+// a missing or unparseable value means 1, so the plain "mark it" shortcut
+// keeps working unchanged. done is always derived server-side from the
+// resulting count against the habit's target, never trusted from the client.
+async function markHabit(s:State,title:string,value:string){
   const habit=s.habits.find(h=>h.data.title.trim().toLowerCase()===title.trim().toLowerCase());
   if(!habit)throw new Error('ההרגל "'+title+'" לא נמצא');
   const id='entry:'+habit.id+':'+s.today;
   const existing=await oneRecord(id);
-  const data=validate('habitEntry',{habitId:habit.id,date:s.today,done:true});
+  const target=habitTarget(habit.data);
+  const current=existing&&!existing.deletedAt?entryCount(existing.data as HabitEntryData):0;
+  const parsed=num(value);
+  const add=typeof parsed==='number'&&parsed>=0?Math.round(parsed):1;
+  const count=Math.min(target,current+add);
+  const data=validate('habitEntry',{habitId:habit.id,date:s.today,done:count>=target,count});
   await upsert(database(),id,'habitEntry',data,existing?.version);
   const entries=[...s.entries.filter(e=>e.id!==id),{...existing,id,kind:'habitEntry',data,version:1,createdAt:'',updatedAt:'',deletedAt:null} as Entry<'habitEntry'>];
-  return 'סומן: '+habit.data.title+' · רצף '+streak(habit,entries,s.today);
+  return 'סומן: '+habit.data.title+(target>1?' ('+count+'/'+target+')':'')+' · רצף '+streak(habit,entries,s.today);
 }
 
 async function updateGoal(s:State,title:string,value:string){
@@ -144,7 +153,7 @@ export async function POST(request:Request){
     if(!choice)throw new Error('לא נבחרה פעולה');
     const s=await load();
     let message:string;
-    if(choice.startsWith(HABIT))message=await markHabit(s,choice.slice(HABIT.length));
+    if(choice.startsWith(HABIT))message=await markHabit(s,choice.slice(HABIT.length),value);
     else if(choice.startsWith(GOAL))message=await updateGoal(s,choice.slice(GOAL.length),value);
     else if(choice===SLEEP)message=await recordSleep(s,value);
     else if(choice===CHECKIN)message=await recordCheckin(s,value);

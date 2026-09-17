@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
-import {calendarWeek,dateOffset,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
+import {calendarWeek,dateOffset,entryCount,habitTarget,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
@@ -57,10 +57,16 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
   function entryId(habitId:string,day:string){return 'entry:'+habitId+':'+day;}
 
+  // A single control for every habit: for a target of 1 this is a plain
+  // tap-to-undo toggle (the count mirrors done, 1 or 0); for a target above 1
+  // each tap adds one and a completed day wraps back to zero, same gesture.
   async function toggle(h:Entry<'habit'>,day:string){
     const id=entryId(h.id,day);
     const old=records.find(e=>e.id===id) as Entry<'habitEntry'>|undefined;
-    await save('habitEntry',{habitId:h.id,date:day,done:!(old&&!old.deletedAt&&old.data.done)},old,id);
+    const target=habitTarget(h.data);
+    const current=old&&!old.deletedAt?entryCount(old.data):0;
+    const count=current>=target?0:current+1;
+    await save('habitEntry',{habitId:h.id,date:day,done:count>=target,count},old,id);
   }
 
   return <>
@@ -104,7 +110,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     <div className="habit-list">
       {visible.map(h=>{
-        const done=entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done);
+        const target=habitTarget(h.data);
+        const entry=entries.find(e=>e.data.habitId===h.id&&e.data.date===selected);
+        const done=!!entry&&entry.data.done;
+        const count=entry?entryCount(entry.data):0;
         const due=scheduled(h.data,selected);
         const streakDays=streak(h,entries,selected);
         const showSchedule=h.data.days.length!==7;
@@ -123,15 +132,18 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               </small>}
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?'סימון':'יום מנוחה'}</button>
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'יום מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
             </div>
           </div>
           {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
             {week.map(day=>{
-              const marked=entries.some(e=>e.data.habitId===h.id&&e.data.date===day&&e.data.done);
+              const dayEntry=entries.find(e=>e.data.habitId===h.id&&e.data.date===day);
+              const dayCount=dayEntry?entryCount(dayEntry.data):0;
+              const marked=!!dayEntry&&dayEntry.data.done;
+              const partial=!marked&&dayCount>0&&dayCount<target;
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
+              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':partial?' בוצע חלקית '+dayCount+'/'+target:day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
             })}
           </div>}
         </div>;
@@ -140,9 +152,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>setEditing(null)}/>}
 
-    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number)},editing||undefined)} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
+    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:Number(field(form,'target'))||1},editing||undefined)} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>
       <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{emojiOptions.map(([emoji,label])=><option key={emoji} value={emoji}>{label}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
+      <Field label="כמה פעמים ביום"><input name="target" type="number" required min="1" max="10" step="1" defaultValue={editing?habitTarget(editing.data):1}/></Field>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>
