@@ -19,6 +19,14 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-18 — Claude (Claude Code) — The tabular-nums lead, resolved: true, and irrelevant
+- **Summary:** The audit below flagged that `font-variant-numeric: tabular-nums` might be inert under Heebo, which would have meant the `.num` work was pointless. It was checked against the actual font binaries. The claim is true and the conclusion it invites is wrong. **No code change. Do not "fix" this.**
+- **What was measured:** The five subsetted Heebo `.woff2` files the app actually serves, from `.vinext/fonts/heebo-*/`, read with fontTools.
+  - The union of every OpenType feature across all five is `ccmp, frac, kern, liga, locl, mark, mkmk`. There is **no `tnum`**, and no `pnum`/`lnum` either. So every `tabular-nums` declaration in `app/globals.css` is indeed a no-op while Heebo is the rendering face.
+  - But all ten digits already carry an identical advance width — 1151 of 2048 units. **Heebo's figures are tabular by default.** There is no misalignment to fix, and there never was.
+- **Why the declarations stay:** `html` falls back to `-apple-system` (SF Pro on the owner's iPhone) if Heebo has not loaded or fails. SF Pro's digits are proportional, `tnum` works there, and the declaration is what keeps a column of numbers aligned on that path. Removing it would break the fallback to fix nothing.
+- **Note for the next AI:** this is a clean example of a finding that is factually correct and still points at the wrong action. The audit lens verified the font lacked the feature and stopped there; it did not check whether the feature was needed. When a lead accuses a font, a token or a declaration of being inert, measure the thing the declaration was supposed to achieve before removing anything.
+
 ### 2026-09-18 — Claude (Claude Code) — Three measured defects on the habit mark button
 - **Summary:** The owner said something about the habits checkmark was wrong "with pixels". Measuring the rendered boxes found three separate defects on that one control — the one he taps several times every morning. All three are fixed.
 - **Files touched:** `app/globals.css`, `components/life/habits.tsx`.
