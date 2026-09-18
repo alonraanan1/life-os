@@ -428,7 +428,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
    date change and filter switch — every completed habit popped when nothing
    had been completed. The green fill is the confirmation; the press scale
    below is the feedback. */
-.habit-mark.checked{background:var(--success);color:var(--success-ink);border-color:var(--success)}
+/* No specular rim once it is filled. The glass highlight is a 1px white
+   inset along the top edge, which is invisible on the pale unchecked pill but
+   reads as a bright band across the top of the saturated green one — together
+   with the drop shadow below it, the shape looked like it had a misaligned
+   outline behind it. A completion state is solid, not glass; it keeps the
+   elevation and drops the rim. */
+.habit-mark.checked{background:var(--success);color:var(--success-ink);border-color:var(--success);box-shadow:var(--shadow-pill)}
 .habit-mark:disabled{opacity:.4}
 /* One shared week header replaces a weekday/date label per habit; each
    habit's row below is just seven small tap targets aligned under it, so the
