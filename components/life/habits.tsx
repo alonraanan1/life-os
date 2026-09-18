@@ -132,7 +132,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               </small>}
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'יום מנוחה'}</button>
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
             </div>
           </div>

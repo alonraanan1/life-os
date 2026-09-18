@@ -414,7 +414,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
    a specular highlight but deliberately no backdrop-filter — one more blurred
    layer per row is real GPU cost on a phone, and a tint plus a bright rim
    already read as "light material" without it. */
-.habit-mark{min-width:44px;min-height:38px;display:grid;place-items:center;border:1px solid var(--stroke-strong);background:var(--glass-bg-dense);color:var(--brand);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-pill);transition:transform 120ms cubic-bezier(.23,1,.32,1)}
+/* One fixed width for every state. The label changes between a word, a
+   fraction and a check, and letting the box follow the text made the control
+   shrink by 14px the moment you marked something — moving the edit button
+   beside it on every tap, in a list you tap several times each morning. */
+.habit-mark{width:58px;min-height:44px;display:grid;place-items:center;border:1px solid var(--stroke-strong);background:var(--glass-bg-dense);color:var(--brand);border-radius:999px;padding:6px 0;font-size:13px;font-weight:700;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-pill);transition:transform 120ms cubic-bezier(.23,1,.32,1)}
 .habit-mark:active{transform:scale(.96)}
 /* Square, so a full border-radius is a circle rather than an ellipse: with
    only an icon inside, the horizontal padding made the pill 45x44 and it read
@@ -424,7 +428,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
    date change and filter switch — every completed habit popped when nothing
    had been completed. The green fill is the confirmation; the press scale
    below is the feedback. */
-.habit-mark.checked{width:44px;padding-inline:0;background:var(--success);color:var(--success-ink);border-color:var(--success)}
+.habit-mark.checked{background:var(--success);color:var(--success-ink);border-color:var(--success)}
 .habit-mark:disabled{opacity:.4}
 /* One shared week header replaces a weekday/date label per habit; each
    habit's row below is just seven small tap targets aligned under it, so the
@@ -659,7 +663,7 @@ i.fund-dad{background:var(--gold-fill)}
 .habit-summary{padding:12px 0;margin:2px 0 18px;border:0;border-bottom:1px solid var(--stroke);border-radius:0;background:transparent}
 .habit-schedule{color:var(--text-2)!important;margin-top:2px!important}
 .habit-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
-.habit-record .habit-mark,.habit-record .icon-action{min-width:44px;min-height:44px}
+.habit-record .icon-action{min-width:44px;min-height:44px}
 @media(max-width:620px){
  .habit-toolbar{display:block}
  .habit-date-control{justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
@@ -680,5 +684,5 @@ i.fund-dad{background:var(--gold-fill)}
  .habit-record .record-body p{line-height:1.35}
  .habit-record .record-body small{line-height:1.45}
  .habit-actions{margin-inline-start:auto;align-self:flex-start}
- .habit-mark{padding-inline:13px;margin-top:4px}
+ .habit-mark{margin-top:4px}
 }
