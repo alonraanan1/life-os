@@ -107,23 +107,111 @@ test('pending is a render snapshot and parallel saves release their own locks',a
   assert.deepEqual(h.store.records.find(record=>record.id==='b'),savedB);
 });
 
-test('two same-turn saves for one record send only one write',async t=>{
+test('a tap during an in-flight save for the same record queues instead of being dropped',async t=>{
   const a=habitEntry('a');
   const h=await mount(t,[a]);
-  /** @type {Promise<unknown>} */
-  let first;
-  /** @type {Promise<Error>} */
-  let duplicate;
-  await act(async()=>{
-    first=h.store.save('habitEntry',{...a.data,count:2},a);
-    duplicate=h.store.save('habitEntry',{...a.data,count:3,done:true},a).catch(error=>error);
-  });
-  assert.match((await duplicate).message,/שמירה מתבצעת/);
+  const first=await h.startSave('habitEntry',{...a.data,count:2},a);
   assert.equal(h.requests.filter(request=>request.method==='POST').length,1);
-  assert.equal(h.store.records.find(record=>record.id==='a').data.count,2);
-  await h.respond(h.requests.at(-1),{record:{...a,data:{...a.data,count:2},version:5}});
-  await first;
+  /** @type {Promise<unknown>} */
+  let second;
+  await act(async()=>{second=h.store.save('habitEntry',{...a.data,count:3,done:true},{...a,data:{...a.data,count:2},version:5});void second.catch(()=>{});});
+  assert.equal(h.store.records.find(record=>record.id==='a').data.count,3,'the second tap is reflected instantly, without waiting on the first save');
+  assert.equal(h.requests.filter(request=>request.method==='POST').length,1,'the queued write has not been sent yet');
+  await h.respond(first.request,{record:{...a,data:{...a.data,count:2},version:5}});
+  await first.promise;
+  assert.equal(h.requests.filter(request=>request.method==='POST').length,2,'the queued write is sent once the first settles');
+  const secondRequest=h.requests.filter(request=>request.method==='POST').at(-1);
+  assert.equal(secondRequest.body.version,5,'the queued write carries the version the first save produced');
+  await h.respond(secondRequest,{record:{...a,data:{...a.data,count:3,done:true},version:6}});
+  await second;
+  assert.equal(h.store.records.find(record=>record.id==='a').data.count,3);
   assert.equal(h.store.pending('a'),false);
+});
+
+// Each tap below goes through its own act() boundary, the way three separate
+// physical clicks each arrive as their own event/render cycle in the real
+// app - only the network write is what queues, never the optimistic apply.
+test('three rapid taps on a target-3 habit end at 3/3 with three sequential writes',async t=>{
+  const h=await mount(t,[]);
+  const base={habitId:'habit:x',date:'2026-09-18'};
+  const posts=()=>h.requests.filter(r=>r.method==='POST');
+  const record=(version,count,done)=>({id:'entry:x',kind:'habitEntry',data:{...base,count,done},version,createdAt:'2026-09-18T10:00:00.000Z',updatedAt:'2026-09-18T10:00:00.000Z',deletedAt:null});
+
+  const tap1=await h.startSave('habitEntry',{...base,count:1,done:false},undefined,'entry:x');
+  let current=h.store.records.find(r=>r.id==='entry:x');
+  assert.equal(current.data.count,1,'the first tap is reflected instantly');
+
+  const tap2=await h.startSave('habitEntry',{...base,count:2,done:false},current);
+  current=h.store.records.find(r=>r.id==='entry:x');
+  assert.equal(current.data.count,2,'the second tap is reflected instantly, without waiting on the first save');
+  assert.equal(posts().length,1,'the second tap is queued, not sent yet');
+
+  const tap3=await h.startSave('habitEntry',{...base,count:3,done:true},current);
+  assert.equal(h.store.records.find(r=>r.id==='entry:x').data.count,3,'the third tap is reflected instantly too');
+  assert.equal(posts().length,1,'the third tap is also queued behind the first');
+
+  await h.respond(posts()[0],{record:record(1,1,false)});
+  await tap1.promise;
+  assert.equal(posts().length,2,'the second tap is sent once the first settles');
+  await h.respond(posts()[1],{record:record(2,2,false)});
+  await tap2.promise;
+  assert.equal(posts().length,3,'the third tap is sent once the second settles');
+  await h.respond(posts()[2],{record:record(3,3,true)});
+  await tap3.promise;
+
+  assert.equal(posts().length,3,'three taps produced exactly three writes, none dropped');
+  const settled=h.store.records.find(r=>r.id==='entry:x');
+  assert.equal(settled.data.count,3);
+  assert.equal(settled.data.done,true);
+  assert.equal(settled.version,3);
+  assert.equal(h.store.pending('entry:x'),false);
+});
+
+test('when the last of a burst of taps fails, the local count rolls back to the value before that tap',async t=>{
+  const h=await mount(t,[]);
+  const base={habitId:'habit:x',date:'2026-09-18'};
+  const posts=()=>h.requests.filter(r=>r.method==='POST');
+  const record=(version,count,done)=>({id:'entry:x',kind:'habitEntry',data:{...base,count,done},version,createdAt:'2026-09-18T10:00:00.000Z',updatedAt:'2026-09-18T10:00:00.000Z',deletedAt:null});
+
+  const tap1=await h.startSave('habitEntry',{...base,count:1,done:false},undefined,'entry:x');
+  let current=h.store.records.find(r=>r.id==='entry:x');
+  const tap2=await h.startSave('habitEntry',{...base,count:2,done:false},current);
+  current=h.store.records.find(r=>r.id==='entry:x');
+  const tap3=await h.startSave('habitEntry',{...base,count:3,done:true},current);
+
+  await h.respond(posts()[0],{record:record(1,1,false)});
+  await tap1.promise;
+  await h.respond(posts()[1],{record:record(2,2,false)});
+  await tap2.promise;
+  await h.respond(posts()[2],{error:'השמירה לא הצליחה'},503);
+  await assert.rejects(tap3.promise,/השמירה לא הצליחה/);
+
+  const settled=h.store.records.find(r=>r.id==='entry:x');
+  assert.equal(settled.data.count,2,'rolls back to the count after the last successful tap, not to zero');
+  assert.equal(settled.data.done,false);
+  assert.equal(h.store.error,'השמירה לא הצליחה');
+  assert.equal(h.store.pending('entry:x'),false);
+});
+
+test('a burst of taps on one habit never blocks or delays a tap on a different habit',async t=>{
+  const vitamins=habitEntry('vitamins',0),water=habitEntry('water',0);
+  const h=await mount(t,[vitamins,water]);
+  const v1=await h.startSave('habitEntry',{...vitamins.data,count:1},vitamins);
+  const w1=await h.startSave('habitEntry',{...water.data,count:1},water);
+  const v2=await h.startSave('habitEntry',{...vitamins.data,count:2},h.store.records.find(r=>r.id==='vitamins'));
+  assert.equal(h.requests.filter(r=>r.method==='POST'&&r.body.id==='water').length,1,'water was never made to wait on the vitamins queue');
+  assert.equal(h.store.records.find(r=>r.id==='water').data.count,1);
+  assert.equal(h.store.records.find(r=>r.id==='vitamins').data.count,2,'the second vitamins tap is reflected instantly');
+  await h.respond(w1.request,{record:{...water,data:{...water.data,count:1},version:5}});
+  await w1.promise;
+  const vitaminsPosts=()=>h.requests.filter(r=>r.method==='POST'&&r.body.id==='vitamins');
+  await h.respond(vitaminsPosts()[0],{record:{...vitamins,data:{...vitamins.data,count:1},version:5}});
+  await v1.promise;
+  await h.respond(vitaminsPosts()[1],{record:{...vitamins,data:{...vitamins.data,count:2},version:6}});
+  await v2.promise;
+  assert.equal(h.store.records.find(r=>r.id==='vitamins').data.count,2);
+  assert.equal(h.store.pending('vitamins'),false);
+  assert.equal(h.store.pending('water'),false);
 });
 
 test('failed update restores the full existing record while another save succeeds',async t=>{

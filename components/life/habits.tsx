@@ -19,7 +19,7 @@ function readableDate(date:string){
 }
 
 export function HabitsView({compact=false}:{compact?:boolean}){
-  const {records,save,pending}=useLife();
+  const {records,save}=useLife();
   const [today,setToday]=useState(todayKey());
   const todayRef=useRef(today);
   const [date,setDate]=useState(todayKey());
@@ -132,7 +132,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               </small>}
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={pending(entryId(h.id,selected))||!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
+              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
             </div>
           </div>
@@ -143,7 +143,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               const marked=!!dayEntry&&dayEntry.data.done;
               const partial=!marked&&dayCount>0&&dayCount<target;
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':partial?' בוצע חלקית '+dayCount+'/'+target:day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={pending(entryId(h.id,day))||!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
+              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':partial?' בוצע חלקית '+dayCount+'/'+target:day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
             })}
           </div>}
         </div>;
