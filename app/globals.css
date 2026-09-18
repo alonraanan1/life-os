@@ -416,9 +416,16 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
    already read as "light material" without it. */
 .habit-mark{min-width:44px;min-height:38px;display:grid;place-items:center;border:1px solid var(--stroke-strong);background:var(--glass-bg-dense);color:var(--brand);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-pill);transition:transform 120ms cubic-bezier(.23,1,.32,1)}
 .habit-mark:active{transform:scale(.96)}
-.habit-mark.checked{background:var(--success);color:var(--success-ink);border-color:var(--success);animation:habit-mark-settle 180ms cubic-bezier(.23,1,.32,1)}
+/* Square, so a full border-radius is a circle rather than an ellipse: with
+   only an icon inside, the horizontal padding made the pill 45x44 and it read
+   as very slightly squashed next to everything else that is round.
+   The settle keyframe is gone on purpose. It was declared on a class that is
+   already present when the list first paints, so it replayed on every mount,
+   date change and filter switch — every completed habit popped when nothing
+   had been completed. The green fill is the confirmation; the press scale
+   below is the feedback. */
+.habit-mark.checked{width:44px;padding-inline:0;background:var(--success);color:var(--success-ink);border-color:var(--success)}
 .habit-mark:disabled{opacity:.4}
-@keyframes habit-mark-settle{0%{transform:scale(.92)}100%{transform:scale(1)}}
 /* One shared week header replaces a weekday/date label per habit; each
    habit's row below is just seven small tap targets aligned under it, so the
    grid definition (columns + gap) must match exactly between the two. */
