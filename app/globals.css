@@ -49,6 +49,13 @@
      progress bar, and "you did it" confirmations only — never generic UI. */
   --success:#1f8a57; --success-ink:#ffffff; --success-tint: rgba(31,138,87,.12); --success-tint-strong: rgba(31,138,87,.20);
   --gold:#8a6a1e; --gold-tint: rgba(138,106,30,.12);
+  /* Gold as a FILL, not as text. --gold is dark enough to read as type on
+     white, which makes it 1.10:1 against --brand — so the two funder segments
+     in a category bar were the same value and told apart by hue alone. Data
+     marks carry no words and need separation from their neighbour rather than
+     from the page, so they use this lighter gold: 2.3:1 against the blue
+     beside them while still sitting clearly on the grey track. */
+  --gold-fill:#c9a13c;
   --danger:#d9342b; --danger-ink:#ffffff; --danger-tint: rgba(217,52,43,.10);
   --income: var(--success);
   --bar: rgba(255,255,255,.92);
@@ -461,10 +468,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .category-breakdown bdi{text-align:left;font-variant-numeric:tabular-nums}
 .fund-key{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-3)}
 .fund-key i{width:7px;height:7px;border-radius:50%;flex:none}
-.category-meter{height:5px;border-radius:9px;background:var(--stroke-strong);overflow:hidden;display:flex}
+.category-meter{height:5px;border-radius:9px;background:var(--stroke-strong);overflow:hidden;display:flex;gap:2px}
 .category-meter i{display:block;height:100%;flex:none}
 i.fund-me{background:var(--brand)}
-i.fund-dad{background:var(--gold)}
+i.fund-dad{background:var(--gold-fill)}
 .income{color:var(--income)}
 .field-help{font-size:13.5px;color:var(--text-3);line-height:1.7}
 @media(max-width:480px){.finance-metrics{gap:10px}.finance-metrics strong{font-size:16px}.category-breakdown>div{grid-template-columns:75px 1fr 85px;gap:10px}}
