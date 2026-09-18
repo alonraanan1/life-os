@@ -19,6 +19,17 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-18 — Claude (Claude Code) — Habits can have named sub-steps, so vitamins are three pills by name
+- **Summary:** The owner takes three different vitamins daily and wants to tick each one off. The numeric target added earlier knows *how many* were taken, never *which*. A habit can now carry an ordered list of named steps, and a day records exactly which of them are done.
+- **Files touched:** `lib/life-model.ts`, `components/life/habits.tsx`, `app/api/hub/route.ts`, `app/globals.css`, `tests/model.test.mjs`.
+- **Validation:** Typecheck, 30/30 tests (25 existing, 5 added), production build, `impeccable` clean — re-run independently of the agent that wrote it.
+- **Shape, and why it is safe:** `HabitData.steps?: string[]` (2-6 names, each up to 30 characters, no duplicates) and `HabitEntryData.stepsDone?: number[]`. Both optional, so nothing existing changes and nothing is migrated. When `steps` exists it **defines** the target — `habitTarget()` returns `steps.length` and ignores any stored `target`, so the two can never contradict each other. Crucially `count` and `done` keep their exact meaning, which is what lets `streak()`, the day's summary ratio, the progress bar and the weekly dots stay completely untouched.
+- **One place derives the rule:** `toggleHabitStep()` computes `{stepsDone, count, done}` and is used by both the screen and the hub endpoint, so the client and the phone can never disagree about what a completed day means. `done` is still never trusted from a client.
+- **Editing steps does not rewrite history, by design.** `entryStepsDone()` falls back to `[0..count-1]` for legacy entries that only have a count, and returns whatever is stored otherwise — including an index a later edit removed. Renaming or reordering steps therefore leaves past days with the count they had; it does not retroactively reinterpret them. Do not "fix" this by migrating old entries.
+- **The phone needs no changes.** A stepped habit now lists its unmarked steps individually in the hub menu (`ויטמינים: מגנזיום`), and choosing one marks that step with the count recomputed server-side. The old numeric and title paths fall through untouched, so the existing shortcut keeps working exactly as before.
+- **Not verified:** how the chips wrap on a real phone at 320px with three Hebrew words. Browser tooling was unavailable this session, so the layout is CSS reasoning only.
+- **For the owner:** the habit itself still has to be created from a signed-in session — new habit, name it, and enter the three step names in the new comma-separated field.
+
 ### 2026-09-18 — Claude (Claude Code) — Halve the database round trips behind every save
 - **Summary:** `POST /api/records`, which every save in the app goes through, made 3 sequential D1 queries — 4 for a habit entry. It now makes 2 in both cases. This is the latency the interface stopped waiting on in the entry below; now the write itself is faster too.
 - **Files touched:** `app/api/records/route.ts`, `lib/life-store.ts` (exporting the `Row` type, nothing else).

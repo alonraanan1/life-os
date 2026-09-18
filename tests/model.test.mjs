@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep} from '../lib/life-model.ts';
 test('rejects invalid dates and fractional money',()=>{assert.throws(()=>validate('transaction',{title:'x',category:'x',date:'2026-02-30',amount:100,direction:'expense'}));assert.throws(()=>validate('transaction',{title:'x',category:'x',date:'2026-02-28',amount:1.2,direction:'expense'}));});
 test('streak skips unscheduled days, allows today pending, breaks at missing scheduled day',()=>{const h={id:'h',data:{title:'x',emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4]}};const entries=['2026-09-09','2026-09-10'].map(date=>({deletedAt:null,data:{habitId:'h',date,done:true}}));assert.equal(streak(h,entries,'2026-09-13'),2);assert.equal(streak(h,entries,'2026-09-14'),0);assert.equal(scheduled(h.data,'2026-09-12'),false);});
 test('calendar helpers handle month boundaries and Israel timezone',()=>{assert.equal(dateOffset('2026-03-01',-1),'2026-02-28');assert.equal(todayKey(new Date('2026-09-11T22:00:00Z')),'2026-09-12');});
@@ -23,4 +23,31 @@ test('a partial day breaks the streak like an unmarked day, but a partial today 
   ];
   assert.equal(streak(h,entries,'2026-09-10'),2);
   assert.equal(streak(h,entries,'2026-09-13'),0);
+});
+test('habit steps validation accepts three names and rejects one name, seven names, duplicates and an over-long name',()=>{
+  const base={title:'x',emoji:'x',startDate:'2026-09-01',days:[0]};
+  assert.deepEqual(validate('habit',{...base,steps:['קריאטין','מגנזיום','תוסף']}).steps,['קריאטין','מגנזיום','תוסף']);
+  assert.throws(()=>validate('habit',{...base,steps:['רק אחד']}));
+  assert.throws(()=>validate('habit',{...base,steps:['א','ב','ג','ד','ה','ו','ז']}));
+  assert.throws(()=>validate('habit',{...base,steps:['שם','שם']}));
+  assert.throws(()=>validate('habit',{...base,steps:['שם','א'.repeat(31)]}));
+});
+test('habitTarget returns steps.length when steps exist, ignoring a conflicting stored target',()=>{
+  assert.equal(habitTarget({title:'x',emoji:'x',startDate:'2026-09-01',days:[0],target:9,steps:['א','ב','ג']}),3);
+  assert.equal(habitTarget({title:'x',emoji:'x',startDate:'2026-09-01',days:[0],target:5}),5);
+  assert.equal(habitTarget({title:'x',emoji:'x',startDate:'2026-09-01',days:[0]}),1);
+});
+test('an entry records the right count and done for one, two and three completed steps',()=>{
+  let r=toggleHabitStep([],0,3);assert.deepEqual(r,{stepsDone:[0],count:1,done:false});
+  r=toggleHabitStep(r.stepsDone,1,3);assert.deepEqual(r,{stepsDone:[0,1],count:2,done:false});
+  r=toggleHabitStep(r.stepsDone,2,3);assert.deepEqual(r,{stepsDone:[0,1,2],count:3,done:true});
+});
+test('a legacy entry with count and no stepsDone still reads correctly',()=>{
+  assert.deepEqual(entryStepsDone({habitId:'h',date:'2026-09-01',done:false,count:2}),[0,1]);
+  assert.deepEqual(entryStepsDone({habitId:'h',date:'2026-09-01',done:true}),[0]);
+});
+test('an entry referencing a step index that no longer exists does not throw',()=>{
+  assert.deepEqual(entryStepsDone({habitId:'h',date:'2026-09-01',done:false,count:1,stepsDone:[4]}),[4]);
+  const data=validate('habitEntry',{habitId:'h',date:'2026-09-01',done:false,count:1,stepsDone:[4]});
+  assert.deepEqual(data.stepsDone,[4]);
 });

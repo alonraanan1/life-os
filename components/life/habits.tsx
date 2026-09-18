@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
-import {calendarWeek,dateOffset,entryCount,habitTarget,scheduled,streak,todayKey,type Entry} from '@/lib/life-model';
+import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,toggleHabitStep,type Entry} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
@@ -69,6 +69,17 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     await save('habitEntry',{habitId:h.id,date:day,done:count>=target,count},old,id);
   }
 
+  // A habit with named steps replaces the counter with one chip per step;
+  // this toggles just that index and count/done fall out of it.
+  async function toggleStep(h:Entry<'habit'>,day:string,index:number){
+    const id=entryId(h.id,day);
+    const old=records.find(e=>e.id===id) as Entry<'habitEntry'>|undefined;
+    const target=habitTarget(h.data);
+    const current=old&&!old.deletedAt?entryStepsDone(old.data):[];
+    const {stepsDone,count,done}=toggleHabitStep(current,index,target);
+    await save('habitEntry',{habitId:h.id,date:day,done,count,stepsDone},old,id);
+  }
+
   return <>
   <section className="habits-view">
     <header className="module-header">
@@ -120,6 +131,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         const showStreak=streakDays>=2;
         const scheduleLabel=h.data.days.map(day=>days[day]).join(' · ');
         const HabitIcon=habitIcon(h.data.emoji);
+        const stepsList=h.data.steps;
+        const doneSteps=entry?entryStepsDone(entry.data):[];
         return <div key={h.id} className="habit-record">
           <div className="record-row">
             <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
@@ -132,10 +145,16 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               </small>}
             </div>
             <div className="habit-actions">
-              <button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
+              {!stepsList&&<button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>}
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
             </div>
           </div>
+          {stepsList&&<div className="habit-steps" aria-label={'שלבי '+h.data.title}>
+            {stepsList.map((step,index)=>{
+              const on=doneSteps.includes(index);
+              return <button key={index} className={'habit-step '+(on?'checked':'')} aria-pressed={on} disabled={!due} aria-label={h.data.title+' '+step+(on?' בוצע':' לא בוצע')} onClick={()=>{tap();void toggleStep(h,selected,index).catch(()=>{});}}>{step}</button>;
+            })}
+          </div>}
           {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
             {week.map(day=>{
               const dayEntry=entries.find(e=>e.data.habitId===h.id&&e.data.date===day);
@@ -152,10 +171,11 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>setEditing(null)}/>}
 
-    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:Number(field(form,'target'))||1},editing||undefined)} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
+    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>{const stepsRaw=field(form,'steps'),steps=stepsRaw?stepsRaw.split(',').map(s=>s.trim()).filter(Boolean):undefined;return save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:Number(field(form,'target'))||1,steps},editing||undefined);}} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>
       <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{emojiOptions.map(([emoji,label])=><option key={emoji} value={emoji}>{label}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
       <Field label="כמה פעמים ביום"><input name="target" type="number" required min="1" max="10" step="1" defaultValue={editing?habitTarget(editing.data):1}/></Field>
+      <Field label="שלבים בהרגל (רשימה מופרדת בפסיקים, 2 עד 6, אופציונלי)"><input name="steps" maxLength={200} placeholder="קריאטין, מגנזיום, תוסף" defaultValue={editing?.data.steps?.join(', ')||''}/></Field>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>

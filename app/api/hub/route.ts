@@ -1,5 +1,5 @@
 import {json} from '@/lib/auth';
-import {DAD_CATEGORY,entryCount,habitTarget,money,scheduled,streak,todayKey,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
+import {DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,money,scheduled,streak,todayKey,toggleHabitStep,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
 import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
 
@@ -50,9 +50,23 @@ function summary(s:State){
 // /api/sleep; the father's card is logged hands-free by the Wallet Transaction
 // automation. Their branches in POST still work if something sends them —
 // the automation depends on DAD — they just aren't offered as menu choices.
+// A habit with named steps offers each unmarked step as its own menu line
+// ("ויטמינים: מגנזיום") instead of one line for the whole habit, so a
+// specific step can be chosen without a number pad.
+function unmarkedSteps(s:State,h:Entry<'habit'>){
+  const list=h.data.steps;
+  if(!list)return [];
+  const entry=s.entries.find(e=>e.data.habitId===h.id&&e.data.date===s.today);
+  const done=entry?entryStepsDone(entry.data):[];
+  return list.filter((_,index)=>!done.includes(index));
+}
 function menu(s:State){
   const items:string[]=[];
-  for(const h of s.due)if(!s.marked(h))items.push(hint(HABIT+h.data.title,'רצף '+streak(h,s.entries,s.today)));
+  for(const h of s.due){
+    if(s.marked(h))continue;
+    if(h.data.steps)for(const step of unmarkedSteps(s,h))items.push(hint(HABIT+h.data.title+': '+step,'רצף '+streak(h,s.entries,s.today)));
+    else items.push(hint(HABIT+h.data.title,'רצף '+streak(h,s.entries,s.today)));
+  }
   if(!s.checkin)items.push(hint(CHECKIN,'1-5 ואז הערה'));
   items.push(hint(EXPENSE,'סכום קטגוריה תיאור'));
   items.push(hint(TASK,'מה צריך לעשות'));
@@ -75,11 +89,41 @@ export async function GET(request:Request){
   }catch{return json({error:'storage_unavailable'},503);}
 }
 
+// A label of the form "<habit title>: <step name>" picks out one step of a
+// habit that has them; anything else (a plain title, or a habit without
+// steps) falls through to the numeric path below unchanged.
+function findHabitStep(s:State,label:string){
+  for(const h of s.habits){
+    const list=h.data.steps;
+    if(!list)continue;
+    const prefix=h.data.title.trim()+': ';
+    if(!label.startsWith(prefix))continue;
+    const wanted=label.slice(prefix.length).trim().toLowerCase();
+    const index=list.findIndex(step=>step.trim().toLowerCase()===wanted);
+    if(index!==-1)return {habit:h,index};
+  }
+  return undefined;
+}
+
+async function markHabitStep(s:State,habit:Entry<'habit'>,index:number){
+  const id='entry:'+habit.id+':'+s.today;
+  const existing=await oneRecord(id);
+  const target=habitTarget(habit.data);
+  const current=existing&&!existing.deletedAt?entryStepsDone(existing.data as HabitEntryData):[];
+  const {stepsDone,count,done}=toggleHabitStep(current,index,target);
+  const data=validate('habitEntry',{habitId:habit.id,date:s.today,done,count,stepsDone});
+  await upsert(database(),id,'habitEntry',data,existing?.version);
+  const entries=[...s.entries.filter(e=>e.id!==id),{...existing,id,kind:'habitEntry',data,version:1,createdAt:'',updatedAt:'',deletedAt:null} as Entry<'habitEntry'>];
+  return 'סומן: '+habit.data.title+': '+habit.data.steps![index]+' ('+count+'/'+target+')'+' · רצף '+streak(habit,entries,s.today);
+}
+
 // value is how many pills/reps to add for this run, not a replacement count —
 // a missing or unparseable value means 1, so the plain "mark it" shortcut
 // keeps working unchanged. done is always derived server-side from the
 // resulting count against the habit's target, never trusted from the client.
 async function markHabit(s:State,title:string,value:string){
+  const step=findHabitStep(s,title);
+  if(step)return markHabitStep(s,step.habit,step.index);
   const habit=s.habits.find(h=>h.data.title.trim().toLowerCase()===title.trim().toLowerCase());
   if(!habit)throw new Error('ההרגל "'+title+'" לא נמצא');
   const id='entry:'+habit.id+':'+s.today;
