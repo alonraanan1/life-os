@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
-import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,toggleHabitStep,type Entry} from '@/lib/life-model';
+import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,toggleHabitPill,toggleHabitStep,type Entry} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
@@ -25,6 +25,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const [date,setDate]=useState(todayKey());
   const [filter,setFilter]=useState<HabitFilter>('scheduled');
   const [editing,setEditing]=useState<Entry<'habit'>|null|undefined>();
+  const [stepsText,setStepsText]=useState('');
+  useEffect(()=>{if(editing!==undefined)setStepsText(editing?.data.steps?.join(', ')||'');},[editing]);
+  const stepNames=stepsText.split(',').map(s=>s.trim()).filter(Boolean);
+  const stepsLocked=stepNames.length>=2;
   const habits=select(records,'habit');
   const entries=select(records,'habitEntry');
 
@@ -77,6 +81,19 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     const target=habitTarget(h.data);
     const current=old&&!old.deletedAt?entryStepsDone(old.data):[];
     const {stepsDone,count,done}=toggleHabitStep(current,index,target);
+    await save('habitEntry',{habitId:h.id,date:day,done,count,stepsDone},old,id);
+  }
+
+  // The mark pill on a stepped habit is the same gesture as a numeric one:
+  // mark the next unmarked step, and a complete day clears every step.
+  // toggleHabitPill is the one place that decides which index(es) to flip.
+  async function togglePill(h:Entry<'habit'>,day:string){
+    if(!h.data.steps)return;
+    const id=entryId(h.id,day);
+    const old=records.find(e=>e.id===id) as Entry<'habitEntry'>|undefined;
+    const target=habitTarget(h.data);
+    const current=old&&!old.deletedAt?entryStepsDone(old.data):[];
+    const {stepsDone,count,done}=toggleHabitPill(current,target);
     await save('habitEntry',{habitId:h.id,date:day,done,count,stepsDone},old,id);
   }
 
@@ -133,6 +150,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         const HabitIcon=habitIcon(h.data.emoji);
         const stepsList=h.data.steps;
         const doneSteps=entry?entryStepsDone(entry.data):[];
+        const nextStep=stepsList?stepsList.find((_,i)=>!doneSteps.includes(i)):undefined;
+        const pillLabel=stepsList?(done?'איפוס כל השלבים של '+h.data.title:'סימון '+h.data.title+': '+nextStep):(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'');
         return <div key={h.id} className="habit-record">
           <div className="record-row">
             <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
@@ -145,7 +164,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               </small>}
             </div>
             <div className="habit-actions">
-              {!stepsList&&<button aria-label={(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'')} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void toggle(h,selected).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>}
+              <button aria-label={pillLabel} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void (stepsList?togglePill(h,selected):toggle(h,selected)).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
             </div>
           </div>
@@ -171,11 +190,12 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
     {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>setEditing(null)}/>}
 
-    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>{const stepsRaw=field(form,'steps'),steps=stepsRaw?stepsRaw.split(',').map(s=>s.trim()).filter(Boolean):undefined;return save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:Number(field(form,'target'))||1,steps},editing||undefined);}} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
+    {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>{const stepsRaw=field(form,'steps'),steps=stepsRaw?stepsRaw.split(',').map(s=>s.trim()).filter(Boolean):undefined;return save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:steps?steps.length:Number(field(form,'target'))||1,steps},editing||undefined);}} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>
       <div className="form-columns"><Field label="סמל"><select name="emoji" defaultValue={editing?.data.emoji||'🌱'}>{emojiOptions.map(([emoji,label])=><option key={emoji} value={emoji}>{label}</option>)}</select></Field><Field label="תאריך התחלה"><input name="startDate" type="date" required max={today} defaultValue={editing?.data.startDate||today}/></Field></div>
-      <Field label="כמה פעמים ביום"><input name="target" type="number" required min="1" max="10" step="1" defaultValue={editing?habitTarget(editing.data):1}/></Field>
-      <Field label="שלבים בהרגל (רשימה מופרדת בפסיקים, 2 עד 6, אופציונלי)"><input name="steps" maxLength={200} placeholder="קריאטין, מגנזיום, תוסף" defaultValue={editing?.data.steps?.join(', ')||''}/></Field>
+      <Field label="כמה פעמים ביום">{stepsLocked?<input key="locked" name="target" type="number" required min="1" max="10" step="1" value={stepNames.length} readOnly/>:<input key="free" name="target" type="number" required min="1" max="10" step="1" defaultValue={editing?habitTarget(editing.data):1}/>}</Field>
+      {stepsLocked&&<p className="field-help">מתן שם לכל שלב קובע את הכמות היומית.</p>}
+      <Field label="שלבים בהרגל (רשימה מופרדת בפסיקים, 2 עד 6, אופציונלי)"><input name="steps" maxLength={200} placeholder="קריאטין, מגנזיום, תוסף" value={stepsText} onChange={e=>setStepsText(e.target.value)}/></Field>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>

@@ -40,6 +40,12 @@ export function entryStepsDone(e:HabitEntryData):number[]{return e.stepsDone??Ar
 // The one place that mutates a day's step set: toggles `index` in or out and
 // derives count/done from the result, so they can never disagree with it.
 export function toggleHabitStep(current:number[],index:number,target:number){const stepsDone=current.includes(index)?current.filter(i=>i!==index):[...current,index].sort((a,b)=>a-b);return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};}
+// The stepped habit's mark pill uses the same gesture a numeric habit's mark
+// button already has: mark the next unmarked step, and a complete day clears
+// every step. Both paths fold over toggleHabitStep - picking which index (or
+// indices) to toggle - rather than recomputing stepsDone/count/done a second
+// way, so that rule stays defined in exactly one place.
+export function toggleHabitPill(current:number[],target:number){return current.length>=target?current.reduce((acc,index)=>toggleHabitStep(acc.stepsDone,index,target),{stepsDone:current,count:0,done:false}):toggleHabitStep(current,Array.from({length:target},(_,i)=>i).find(i=>!current.includes(i))??0,target);}
 export function streak(h:Entry<'habit'>,entries:Entry<'habitEntry'>[],date:string){const done=new Set(entries.filter(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.done).map(e=>e.data.date));let count=0;for(let i=0;i<36600;i++){const d=dateOffset(date,-i);if(d<h.data.startDate)break;if(!scheduled(h.data,d))continue;if(done.has(d))count++;else if(i!==0)break;}return count;}
 export function money(cents:number){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2}).format(cents/100);}
 function text(v:unknown,max=200,required=true):string {if(typeof v!=='string'||v.length>max||(required&&!v.trim()))throw new Error('טקסט חסר או ארוך מדי');return v.trim();}
