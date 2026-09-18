@@ -19,6 +19,19 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-18 — Claude (Claude Code) — Three measured defects on the habit mark button
+- **Summary:** The owner said something about the habits checkmark was wrong "with pixels". Measuring the rendered boxes found three separate defects on that one control — the one he taps several times every morning. All three are fixed.
+- **Files touched:** `app/globals.css`, `components/life/habits.tsx`.
+- **Validation:** Typecheck, 22/22 tests, `impeccable` clean, plus before-and-after measurement of the real rendered geometry in a browser.
+- **What was wrong, and how each was found:**
+  - **The circle was an ellipse.** The checked pill measured 45×44, so a full border-radius drew it one pixel wider than tall next to everything else that is round. Found by measuring, not by reading the CSS — the rule said `min-width:44px` and looked correct.
+  - **The completion animation replayed on every render.** `habit-mark-settle` was declared on `.checked`, a class already present when the list first paints, so every already-completed habit re-played its "just completed" pop on every mount, date change and filter switch. It was caught because the measurement came back at exactly `scale(0.92)` — the keyframe's own start value — while nothing was animating on purpose. The keyframe is deleted; the green fill is the confirmation and the `:active` press scale is the feedback. **One of the audit lenses in the entry below had reported this independently and it was sitting in the unverified pile.** Measuring promoted it to fact.
+  - **The row jumped on every tap.** The button's box followed its label, so marking a habit shrank it from 58px to 44px and dragged the edit button beside it 14px across the row. Every state is now one fixed 58×44 box and the edit buttons line up down the whole list.
+- **Decisions worth not reversing:**
+  - The checked state is a **pill, not a circle**, and that is deliberate — the owner chose a stable layout over a rounder shape when the trade-off was put to him. Do not "restore" the circle without asking him.
+  - The rest-day label was shortened from "יום מנוחה" to "מנוחה" so one fixed width serves every state.
+- **Method note that keeps proving itself:** all three were invisible in the source and obvious in the measured box. The CSS declared a 44px minimum, a one-shot animation and sensible padding; the rendered result was an ellipse, a looping animation and a moving row.
+
 ### 2026-09-18 — Claude (Claude Code) — A design audit that ran out of budget, one confirmed regression fixed, and 54 unverified leads for whoever continues
 - **Summary:** The owner reported "many design problems" without naming them, so the first job was discovery. A 16-lens design audit was launched with adversarial verification of every finding. It hit the account's session limit partway through: 64 of 70 agents died, including the ENTIRE verification stage. Six lenses completed and their raw findings were salvaged. One of those findings was verified by hand, turned out to be a real regression shipped earlier the same day, and was fixed.
 - **Files touched:** `app/globals.css` (the fix), `CHANGELOG.md`.
