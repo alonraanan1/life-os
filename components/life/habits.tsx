@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
-import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,toggleHabitPill,toggleHabitStep,type Entry} from '@/lib/life-model';
+import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,weekday,toggleHabitPill,toggleHabitStep,type Entry} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
@@ -133,7 +133,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     </div>
 
     {!compact&&!!visible.length&&<div className="habit-week-header" aria-hidden="true">
-      {week.map(day=><div key={day}><span>{new Date(day+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'short'})}</span><b>{new Date(day+'T12:00:00Z').getUTCDate()}</b></div>)}
+      {week.map(day=><div key={day}><span>{days[weekday(day)]}</span><b>{new Date(day+'T12:00:00Z').getUTCDate()}</b></div>)}
     </div>}
 
     <div className="habit-list">
