@@ -118,6 +118,8 @@ export function budgetStreak(transactions:TransactionData[],budget:number,today:
 export const MEDAL_STREAKS=[3,7,14,30,100,365],MEDAL_MARKS=[10,50,100,500,1000];
 // `signed` lets Intl place the +/- itself, with the direction marks that keep
 // it beside the digits; a sign glued on by hand lands on the wrong side in RTL.
+// The app's short date, as Israelis write it: 22/09 (and 22/09/26 with the year).
+export function dayMonth(date:string,year=false){return date.slice(8,10)+'/'+date.slice(5,7)+(year?'/'+date.slice(2,4):'');}
 export function money(cents:number,signed=false){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2,signDisplay:signed?'exceptZero':'auto'}).format(cents/100);}
 // The stored value remains decimal hours for old records and API clients.
 // In the interface, duration is entered and displayed as hours plus real minutes.

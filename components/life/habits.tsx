@@ -122,7 +122,9 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <button className="quiet-action" onClick={()=>edit(null)}><Plus size={17}/>הרגל חדש</button>
     </header>
 
-    {!compact&&<div className="habit-toolbar">
+    {/* Before the first habit there is no day to move through or sum up;
+        the empty state below is the whole screen. */}
+    {!compact&&!!habits.length&&<div className="habit-toolbar">
       <div className="date-control habit-date-control">
         <button className="icon-action" aria-label="היום הקודם" onClick={()=>moveDate(-1)}><ChevronRight size={17}/></button>
         <label className="sr-only" htmlFor="habit-date">יום לתיעוד</label>
@@ -136,11 +138,11 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       </div>}
     </div>}
 
-    <div className="habit-summary" aria-label="סיכום ביצועי הרגלים">
+    {!!habits.length&&<div className="habit-summary" aria-label="סיכום ביצועי הרגלים">
       <div className="habit-summary-copy">
         <span>{selected===today?'היום':readableDate(selected)}</span>
         <strong key={cheer} className={cheer?'habit-cheer':undefined}>{dueHabits.length?completed+'/'+dueHabits.length:'—'}</strong>
-        <small aria-live="polite">{dueHabits.length?(completed===dueHabits.length?'יום מושלם':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
+        <small aria-live="polite">{dueHabits.length?(completed===dueHabits.length?'יום מושלם':'הושלמו'):'יום מנוחה מתוכנן'}</small>
         <small className="streak-line" aria-live="polite">{medal?<><Medal size={13} aria-hidden="true"/>מדליה חדשה · {medal}</>:perfect.current>=2&&<><Flame size={13} aria-hidden="true"/>{perfect.current} ימים מושלמים ברצף</>}</small>
       </div>
       {/* A drawn bar, not <progress>: it animates with a transform. */}
@@ -148,7 +150,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <div className="habit-progress" role="progressbar" aria-label="השלמת ההרגלים המתוכננים" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}>
         <span style={{'--pct':completionPercent/100} as CSSProperties}/>
       </div>
-    </div>
+    </div>}
 
     {!compact&&!!visible.length&&<div className="habit-week-header" aria-hidden="true">
       {week.map(day=><div key={day}><span>{days[weekday(day)]}</span><b>{new Date(day+'T12:00:00Z').getUTCDate()}</b></div>)}

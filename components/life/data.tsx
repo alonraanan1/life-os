@@ -1,8 +1,8 @@
 'use client';
-import {useRef,useState} from 'react';import {Award,Download,LogOut,Medal,Pencil,RotateCcw,Upload} from 'lucide-react';import {MEDAL_MARKS,MEDAL_STREAKS,perfectStreaks,todayKey,type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
+import {useRef,useState} from 'react';import {Award,Download,LogOut,Medal,Pencil,RotateCcw,Upload} from 'lucide-react';import {dayMonth,MEDAL_MARKS,MEDAL_STREAKS,money,perfectStreaks,todayKey,type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
 const labels:Record<Kind,string>={task:'משימות',habit:'הרגלים',habitEntry:'סימוני הרגלים',transaction:'תנועות כספיות',budget:'תקציבים',goal:'מטרות',checkin:'צ׳ק־אינים',sleep:'לילות שינה',settings:'הגדרות',dadPayment:'תשלומים לאבא'};
 const single:Record<Kind,string>={task:'משימה',habit:'הרגל',habitEntry:'סימון הרגל',transaction:'תנועה',budget:'תקציב',goal:'מטרה',checkin:'צ׳ק־אין',sleep:'שינה',settings:'הגדרות',dadPayment:'תשלום לאבא'};
-function titleOf(entry:Entry){const data=entry.data as Record<string,unknown>;for(const key of ['title','note','name','month','date']){const value=data[key];if(typeof value==='string'&&value.trim())return value;}return entry.id;}
+function titleOf(entry:Entry){if(entry.kind==='dadPayment')return money((entry as Entry<'dadPayment'>).data.amount);const data=entry.data as Record<string,unknown>;for(const key of ['title','note','name','month','date']){const value=data[key];if(typeof value==='string'&&value.trim())return key==='date'?dayMonth(value,true):value;}return entry.id;}
 export function DataView(){
   const {records,save,busy,refresh}=useLife();const file=useRef<HTMLInputElement>(null);
   const [message,setMessage]=useState(''),[problem,setProblem]=useState(''),[working,setWorking]=useState(false),[editingName,setEditingName]=useState(false);
@@ -43,7 +43,7 @@ export function DataView(){
       {!!counts.length&&<div className="data-counts">{counts.map(([kind,total])=><div key={kind}><strong>{total}</strong><span>{labels[kind]}</span></div>)}</div>}
     </section>
     <section><header className="module-header"><div><h2>סל המיחזור</h2><p>{trash.length?trash.length+' פריטים שנמחקו וניתן להחזיר':'אין פריטים שנמחקו'}</p></div></header>
-      {trash.slice(0,60).map(entry=><div className="record-row" key={entry.id}><div className="record-body"><p>{titleOf(entry)}</p><small>{single[entry.kind]} · נמחק ב־{String(entry.deletedAt).slice(0,10)}</small></div><button className="quiet-action" disabled={busy} aria-label={'שחזור '+titleOf(entry)} onClick={()=>{void restore(entry).catch(()=>{});}}><RotateCcw size={16}/>שחזור</button></div>)}
+      {trash.slice(0,60).map(entry=><div className="record-row" key={entry.id}><div className="record-body"><p>{titleOf(entry)}</p><small>{single[entry.kind]} · נמחק ב־{dayMonth(String(entry.deletedAt),true)}</small></div><button className="quiet-action" disabled={busy} aria-label={'שחזור '+titleOf(entry)} onClick={()=>{void restore(entry).catch(()=>{});}}><RotateCcw size={16}/>שחזור</button></div>)}
       {!trash.length&&<Empty title="שום דבר לא אבד" text="פריטים שתמחק יחכו כאן עד שתחליט להחזיר אותם."/>}
     </section>
     <section><header className="module-header"><div><h2>יציאה מהחשבון</h2><p>תמיד אפשר להתחבר חזרה עם חשבון Google שלך</p></div></header><button className="quiet-action" disabled={working} onClick={()=>{void logout();}}><LogOut size={17}/>התנתקות</button></section>

@@ -19,6 +19,18 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Audit pass: touch targets, empty states, dates, headings, error contrast
+- **Summary:** First pass over the areas no audit had covered, measured in a static preview of every screen at 390px (and 320/375 where layout is tight):
+  - **Touch targets:** every control is now at least 44px tall. The habit editor's day picker was 18px checkboxes; it is now seven 39×44 chips (the checkbox stays inside each chip, invisible, so the form and screen readers are unchanged). Also raised: the date field (42→44), the segmented control (36→44, track padding 4→2), "עריכת תקציב" (32→44, negative margin keeps the row height) and the last-payment row (42→44).
+  - **Empty states:** before the first habit, Habits shows only the header and the empty state (no date bar, no "—" summary). A month with no transactions drops the three ₪0.00 figures.
+  - **Finance header:** the month picker gives up width before it wraps, so it shares the row with "תנועה חדשה" down to 375px (at 390 it had been spilling 6px past the content edge).
+  - **Dates:** one `dayMonth()` helper (22/09, or 25/09/26 with the year) for transaction rows, the last-payment row and the trash can, which showed raw ISO dates. A deleted payment is titled by its amount in the trash.
+  - **Headings:** "לאן הכסף הולך" is an `h2`, since the page `h1` now sits directly above it. Links get the same focus ring as buttons.
+  - **Error contrast:** `--danger` is `#b3261e`. The error banner's red text on its tint was 3.68:1.
+- **Checked and fine:** RTL (every physical left/right is deliberate; the prev/next chevrons point the RTL way), sign-in screen, Data page targets, loading line, reduced motion (the global rule covers every transition and the cheer keyframe).
+- **Files touched:** `app/globals.css`, `components/life/{habits,finance,data}.tsx`, `lib/life-model.ts`, `tests/model.test.mjs`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:** 78/78 tests, typecheck, lint, build. Audit script at 390px: no control under 44px on Habits, Finance or Data, no horizontal overflow.
+
 ### 2026-09-25 — Claude (Claude Code) — Backlog pass 3: the server settles habit completion; finance cards align
 - **Summary:**
   - **`POST /api/records` no longer trusts the screen's `done` for a habit day.** The route already reads the parent habit, so it now runs the entry through `settleEntry()` (`lib/life-model.ts`): `done` is `count >= target` from the habit as stored, with `count` taken from `stepsDone` for a stepped habit. The Shortcut routes already derived it this way via `advanceHabit()`. A legacy entry with no `count` is stored as sent. Only a screen holding an outdated habit (the target changed on another device) sees a difference, and it reconciles to the stored record.

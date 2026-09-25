@@ -719,7 +719,7 @@ Core tokens:
 - `--brand` — the single interactive accent, Apple Action Blue (`#0066cc`): links, nav/filter selection, primary buttons, focus rings. `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
 - `--success` — a narrow, deliberate green (`#1a7f4f`, 5.0:1 on white, darkened from `#1f8a57` which read 4.35:1) that means "completed" only: the habit mark, the daily progress bar, the weekly history dots, goal-reached confirmations. It is not a general-purpose accent. `--income` maps to `--success` by financial convention.
 - `--gold` — kept in its narrow semantic role: goal amounts, the dad-card, and the icons for streaks (flame) and medals.
-- `--danger` / `--danger-ink` — destructive actions and error states.
+- `--danger` / `--danger-ink` — destructive actions and error states. `#b3261e`: 5.0:1 as text on its own tint (the error banner), which the brighter `#d9342b` missed at 3.7:1.
 - `--disabled-opacity` (.5) — the one dimming step for every disabled control.
 - `--glass-bg` / `--glass-bg-dense` / `--glass-highlight` / `--glass-shade` / `--glass-blur` / `--glass-saturate` — the Liquid Glass material: translucency, backdrop blur with saturation, and a specular top-edge highlight.
 - `--glass-clear` (30% white, 8px blur) / `--glass-sheet` (55% white, 28px blur) — the sheer glass for the two surfaces that float over moving content: the mobile tab bar and the editor sheet. At `--glass-bg`'s 66% over a white section they read as an opaque white slab, so these let the content show through. Fields inside the sheet are tinted glass too (50% white, no blur of their own).

@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -137,4 +137,8 @@ test('the server settles done from the habit target, not from what the screen se
   assert.deepEqual(settleEntry(stepped,{...day,done:false,count:0,stepsDone:[0,1]}),{...day,done:true,count:2,stepsDone:[0,1]});
   // A legacy mark with no count stays exactly as sent.
   assert.deepEqual(settleEntry(plain,{...day,done:true}),{...day,done:true});
+});
+test('short dates read day first, with a two-digit year when asked',()=>{
+  assert.equal(dayMonth('2026-09-05'),'05/09');
+  assert.equal(dayMonth('2026-09-25T10:00:00.000Z',true),'25/09/26');
 });

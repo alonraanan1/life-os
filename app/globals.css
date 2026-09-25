@@ -56,7 +56,7 @@
      from the page, so they use this lighter gold: 2.3:1 against the blue
      beside them while still sitting clearly on the grey track. */
   --gold-fill:#c9a13c;
-  --danger:#d9342b; --danger-ink:#ffffff; --danger-tint: rgba(217,52,43,.10);
+  --danger:#b3261e; --danger-ink:#ffffff; --danger-tint: rgba(179,38,30,.10);
   --income: var(--success);
   --blur:24px;
   /* One dimming step for every disabled control. Disabled controls are exempt
@@ -284,7 +284,7 @@ body::before, body::after { content: ''; position: fixed; z-index: -1; border-ra
 body::before { width: 560px; height: 560px; background: var(--glow-a); top: -200px; inset-inline-start: -160px; }
 body::after { width: 520px; height: 520px; background: var(--glow-b); bottom: -220px; inset-inline-start: -200px; }
 button, input, select { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .app-shell { position: relative; z-index: 1; min-height: 100vh; max-width: 1600px; margin-inline: auto; padding-inline: 18px; }
 .app-sidebar { display: none; }
 .app-main { min-width: 0; padding: 26px 4px 112px; }
@@ -336,8 +336,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 /* A small floating segmented control: lighter material than the sidebar/tab
    bar (half the blur radius), because a smaller surface should read as
    thinner glass, not the same thickness as a large panel. */
-.filter-row { width: fit-content; border: 0; background: var(--glass-bg); -webkit-backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate));backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate)); border-radius: 12px; padding: 4px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade); }
-.filter-row button { border: 0; border-radius: 9px; color: var(--text-2); font-weight: 600; min-height: 36px; }
+.filter-row { width: fit-content; border: 0; background: var(--glass-bg); -webkit-backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate));backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate)); border-radius: 12px; padding: 2px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade); }
+.filter-row button { border: 0; border-radius: 10px; color: var(--text-2); font-weight: 600; min-height: 44px; }
 .filter-row button.selected { background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow-pill); }
 .content-flow { padding-bottom: 16px; }
 @media (min-width: 768px) { .app-main { padding: 32px 6px 112px; } .overview-grid { grid-template-columns: 1.1fr 1fr; } }
@@ -488,19 +488,24 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .habit-history button.muted::before{width:5px;height:5px;border:0;background:rgba(29,29,31,.5)}
 .habit-history button:not(:disabled):active::before{transform:scale(.88)}
 .habit-history button:disabled{cursor:not-allowed}
-.day-picker{display:flex;flex-wrap:wrap;gap:12px}
-.day-picker legend{font-size:14px;margin-bottom:12px;color:var(--text-2)}
-.day-picker label{display:flex;align-items:center;gap:5px}
-.day-picker input{width:18px;min-height:18px;accent-color:var(--brand)}
+/* Seven 44px-tall chips rather than 18px checkboxes: the checkbox stays in the
+   form and in the accessibility tree, and the whole chip is its label. */
+.day-picker{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.day-picker legend{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text-2)}
+.day-picker label{position:relative;display:grid;place-items:center;min-height:44px;border:1px solid var(--stroke-strong);border-radius:12px;background:rgba(255,255,255,.5);color:var(--text-2);font-size:14px;font-weight:600;cursor:pointer;transition:transform 120ms cubic-bezier(.23,1,.32,1),background-color 150ms ease,color 150ms ease}
+.day-picker label:active{transform:scale(.96)}
+.day-picker input{position:absolute;inset:0;width:100%;min-height:0;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.day-picker label:has(input:checked){background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.day-picker label:has(input:focus-visible){outline:2px solid var(--brand);outline-offset:2px}
 .balance-heading{display:flex;justify-content:space-between;gap:16px;color:var(--text-2);font-size:13px;font-weight:600}
-.balance-heading button{color:var(--brand);min-height:32px}
+.balance-heading button{color:var(--brand);min-height:44px;margin-block:-6px}
 .budget-meter span{display:block;height:100%;border-radius:10px;background:var(--brand)}
 .budget-caption{color:var(--text-2);font-size:13px}
 .finance-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:22px;border-top:1px solid var(--stroke);padding-top:20px}
 .finance-metrics small{display:block;color:var(--text-2);font-size:13px;margin-bottom:8px}
 .finance-metrics strong{font-size:19px;font-weight:700}
 .category-breakdown{margin:30px 0 8px}
-.category-breakdown h3{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px;font-weight:700;margin-bottom:18px}
+.category-breakdown h2{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px;font-weight:700;margin-bottom:18px}
 .category-breakdown>div{display:grid;grid-template-columns:100px 1fr 110px;align-items:center;gap:18px;padding:10px 0;font-size:14px}
 .category-breakdown bdi{text-align:left;font-variant-numeric:tabular-nums}
 .fund-key{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-3)}
@@ -644,7 +649,7 @@ i.fund-dad{background:var(--gold-fill)}
 .dad-head strong{display:block;font-size:28px;line-height:1.2;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold);font-variant-numeric:tabular-nums}
 .dad-open{grid-column:1/-1;font-size:14px;color:var(--text-2);margin-top:6px}
 .dad-open bdi{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
-.dad-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px;transition:opacity 120ms ease}
+.dad-row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;text-align:start;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px;transition:opacity 120ms ease}
 .dad-card>.dad-row{grid-column:1/-1;margin-top:12px}
 .dad-row span:first-child{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
 .dad-row span+span{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -699,6 +704,9 @@ i.fund-dad{background:var(--gold-fill)}
 .quiet-action,.icon-action,.primary-action,.mobile-nav,.nav-item,.filter-row button,.balance-heading button,.google-action{transition:transform 120ms cubic-bezier(.23,1,.32,1),background-color 200ms ease,color 200ms ease,border-color 150ms ease}
 .quiet-action:not(:disabled):active,.icon-action:not(:disabled):active,.primary-action:not(:disabled):active,.mobile-nav:active,.nav-item:active,.filter-row button:active,.balance-heading button:active,.google-action:active{transform:scale(.96)}
 .module-header{gap:12px;flex-wrap:wrap}
+/* The finance month picker shares its row with "תנועה חדשה": it gives up width
+   before the pair wraps, which on a 390px phone keeps them on one line. */
+.module-header>input{flex:1 1 150px;min-width:0;max-width:220px;padding-inline:10px}
 .module-header>div:first-child{min-width:0}
 
 /* Habit tracking is the primary workspace: give the daily result one quiet,
@@ -708,7 +716,7 @@ i.fund-dad{background:var(--gold-fill)}
 .habit-date-control>label:not(.sr-only){display:flex;align-items:center;gap:10px;color:var(--text-2);font-size:13px;font-weight:600}
 .habit-date-control .icon-action{min-width:44px;min-height:44px;color:var(--text-2)}
 .habit-date-control .icon-action:disabled{opacity:var(--disabled-opacity);cursor:not-allowed}
-.habit-date-control input{min-height:40px}
+.habit-date-control input{min-height:44px}
 .today-jump{min-height:44px;margin-inline-start:6px;padding-inline:10px;font-size:13px}
 /* The chevrons' icons line up with the content edge below; the rest of each
    44px button hangs into the gutter. */
