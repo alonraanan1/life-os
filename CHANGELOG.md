@@ -19,6 +19,13 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — A removed step no longer counts toward a habit day; spoken habit labels
+- **Summary:**
+  - **Bug:** when a stepped habit lost a step after being marked that day (say 4 steps down to 3), the removed step's index stayed in `stepsDone` and still counted. Steps 0, 1 and the deleted 3 made "3 of 3": the day showed done while current step 2 was not. `toggleHabitStep`, `toggleHabitPill`, `advanceHabit` and `settleEntry` now count only indices below the target and drop the rest on the next write, so the screen, the Shortcuts and the server agree. An entry already stored with a stale `done` stays as it is until that day is touched again.
+  - **Screen reader labels:** a week dot said "אימון 2026-09-22 לא בוצע", read digit by digit, and called an unscheduled day "not done". It now says the weekday and date, then done, partly done ("1 מתוך 3"), not done, not scheduled, or not yet. The mark pill says "1 מתוך 3" instead of "1/3".
+- **Files touched:** `lib/life-model.ts`, `components/life/habits.tsx`, `tests/model.test.mjs`, `tests/habits.test.mjs`, `tests/finance.test.mjs` (empty-state tests from the audit pass), `CHANGELOG.md`.
+- **Validation:** 82/82 tests (a new one for removed steps), typecheck, lint.
+
 ### 2026-09-25 — Claude (Claude Code) — Audit pass: touch targets, empty states, dates, headings, error contrast
 - **Summary:** First pass over the areas no audit had covered, measured in a static preview of every screen at 390px (and 320/375 where layout is tight):
   - **Touch targets:** every control is now at least 44px tall. The habit editor's day picker was 18px checkboxes; it is now seven 39×44 chips (the checkbox stays inside each chip, invisible, so the form and screen readers are unchanged). Also raised: the date field (42→44), the segmented control (36→44, track padding 4→2), "עריכת תקציב" (32→44, negative margin keeps the row height) and the last-payment row (42→44).

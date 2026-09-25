@@ -60,24 +60,26 @@ export function pendingHabitItems(habits:Entry<'habit'>[],entries:Entry<'habitEn
 }
 // The one place that mutates a day's step set: toggles `index` in or out and
 // derives count/done from the result, so they can never disagree with it.
-export function toggleHabitStep(current:number[],index:number,target:number){const stepsDone=current.includes(index)?current.filter(i=>i!==index):[...current,index].sort((a,b)=>a-b);return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};}
+// An index at or past `target` is a step a later habit edit removed; it is
+// dropped here, or a day could count a deleted step toward done.
+export function toggleHabitStep(current:number[],index:number,target:number){const stepsDone=(current.includes(index)?current.filter(i=>i!==index):[...current,index]).filter(i=>i<target).sort((a,b)=>a-b);return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};}
 // The stepped habit's mark pill uses the same gesture a numeric habit's mark
 // button already has: mark the next unmarked step, and a complete day clears
 // every step. Both paths fold over toggleHabitStep - picking which index (or
 // indices) to toggle - rather than recomputing stepsDone/count/done a second
 // way, so that rule stays defined in exactly one place.
-export function toggleHabitPill(current:number[],target:number){return current.length>=target?current.reduce((acc,index)=>toggleHabitStep(acc.stepsDone,index,target),{stepsDone:current,count:0,done:false}):toggleHabitStep(current,Array.from({length:target},(_,i)=>i).find(i=>!current.includes(i))??0,target);}
+export function toggleHabitPill(current:number[],target:number){const valid=current.filter(i=>i<target);return valid.length>=target?valid.reduce((acc,index)=>toggleHabitStep(acc.stepsDone,index,target),{stepsDone:valid,count:0,done:false}):toggleHabitStep(valid,Array.from({length:target},(_,i)=>i).find(i=>!valid.includes(i))??0,target);}
 // The server settles `done` from the habit's current target, as the Shortcut
 // routes do, so a screen holding an older version of the habit cannot store a
 // day as done (or not) against a target that has since changed. An entry with
 // no count is a legacy boolean mark and is kept as sent.
-export function settleEntry(h:HabitData,e:HabitEntryData):HabitEntryData{const count=h.steps&&e.stepsDone?e.stepsDone.length:e.count;return count===undefined?e:{...e,count,done:count>=habitTarget(h)};}
+export function settleEntry(h:HabitData,e:HabitEntryData):HabitEntryData{const target=habitTarget(h),steps=h.steps&&e.stepsDone?e.stepsDone.filter(i=>i<target):undefined,count=steps?steps.length:e.count;return count===undefined?e:{...e,...(steps?{stepsDone:steps}:{}),count,done:count>=target};}
 // Shortcut calls add progress without wrapping a completed day back to zero.
 // Preserve named-step identity even when an older shortcut supplies only a count.
 export function advanceHabit(h:HabitData,previous:HabitEntryData|undefined,amount=1){
   const target=habitTarget(h);
   if(h.steps){
-    let stepsDone=previous?entryStepsDone(previous):[];
+    let stepsDone=(previous?entryStepsDone(previous):[]).filter(i=>i<target);
     const additions=Math.min(amount,Math.max(0,target-stepsDone.length));
     for(let i=0;i<additions;i++)stepsDone=toggleHabitPill(stepsDone,target).stepsDone;
     return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};

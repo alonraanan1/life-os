@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth,advanceHabit} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -141,4 +141,13 @@ test('the server settles done from the habit target, not from what the screen se
 test('short dates read day first, with a two-digit year when asked',()=>{
   assert.equal(dayMonth('2026-09-05'),'05/09');
   assert.equal(dayMonth('2026-09-25T10:00:00.000Z',true),'25/09/26');
+});
+test('a step removed from the habit no longer counts toward the day',()=>{
+  // Steps 0, 1 and the since-deleted 3 were done; the habit now has 3 steps.
+  assert.deepEqual(toggleHabitStep([0,1,3],2,3),{stepsDone:[0,1,2],count:3,done:true});
+  assert.deepEqual(toggleHabitStep([0,1,3],0,3),{stepsDone:[1],count:1,done:false});
+  assert.deepEqual(toggleHabitPill([0,1,3],3),{stepsDone:[0,1,2],count:3,done:true});
+  const stepped={title:'x',emoji:'x',days:[0],startDate:'2026-09-01',steps:['a','b','c']},day={habitId:'h',date:'2026-09-20'};
+  assert.deepEqual(settleEntry(stepped,{...day,done:true,count:3,stepsDone:[0,1,3]}),{...day,done:false,count:2,stepsDone:[0,1]});
+  assert.deepEqual(advanceHabit(stepped,{...day,done:true,count:3,stepsDone:[0,1,3]}),{stepsDone:[0,1,2],count:3,done:true});
 });
