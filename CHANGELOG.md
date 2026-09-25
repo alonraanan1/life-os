@@ -19,6 +19,37 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Floating glass tab bar, a shorter finance list, sleep hidden, and gamification
+- **Summary:** The owner asked for a more premium feel. Four changes:
+  - **Tab bar:** the mobile tab bar is now a floating liquid-glass capsule instead of a full-width white strip.
+  - **Finance list:** it gets the sleep treatment. Rows are tappable, delete lives in the editor, and only the 5 newest rows are visible; the rest sit behind "עוד N תנועות". The +/− sign sits beside the digits in RTL.
+  - **Sleep:** the section is gone from the habits page, but its code is kept.
+  - **Gamification (his picks):**
+    - a perfect-day streak and a one-time count pop when a tap completes the day;
+    - derived medals, shown on the profile page;
+    - a "days in a row within budget pace" line on finance.
+- **Files touched:** `app/globals.css`, `lib/life-model.ts`, `components/life/finance.tsx`, `components/life/habits.tsx`, `components/life/data.tsx`, `tests/model.test.mjs`, `tests/habits.test.mjs`, `tests/finance.test.mjs` (new), `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:**
+  - Tests: 74/74 (3 model, 2 habits and 2 finance tests added).
+  - Typecheck and production build pass. oxlint shows only the 4 pre-existing findings in `finance.tsx`/`habits.tsx`.
+  - A static preview of the real components with the built CSS was measured at 320, 390 and 1280px:
+    - Tab bar: 12px off the bottom, centred, tabs 50px tall, no clipped labels, hidden at 1024px and up. Page content clears it.
+    - Finance: rows 77px, summary 44px, the minus left of the digits.
+    - Layout: no horizontal scroll.
+  - Not verified (only on an iPhone): Safari's `<details>` marker, the glass in Safari, and iOS ICU sign placement.
+- **Open items / notes for the next AI:**
+  - **Glass never blurred in Chromium before this.** The minifier keeps only the last of a `backdrop-filter` / `-webkit-backdrop-filter` pair, and ours listed the unprefixed one first. So the built CSS shipped only `-webkit-backdrop-filter`, which Chrome ignores. Every glass rule now lists `-webkit-` first, and the build keeps both. Keep that order.
+  - **Restoring sleep:** re-add `import {SleepView} from './sleep';` to `components/life/habits.tsx`, wrap its return in a fragment, and render `{!compact&&<SleepView title="הרגל השינה"/>}` after the habits `<section>`.
+    - `sleep.tsx`, `sleep-chart.tsx`, their CSS and tests are untouched, and `today.tsx` still imports `SleepView`, so typecheck keeps it compiling.
+    - The Shortcut and API sleep flow is unchanged.
+  - **The celebration fires only from the tap** that completes today's last due habit (`mark()` in `habits.tsx`). It never fires on a load, a refresh, a date switch or a Shortcut. This is on purpose: an effect-based trigger fires on data loads and cannot be tested with the store stub.
+  - **Medals are derived** from the habit history (`perfectStreaks().best`, done-mark count) and never stored.
+    - Editing a habit's days, back-dating a start date, or removing old marks can change them.
+    - The "new medal" line appears only on the tap that crosses a threshold. There is no toast.
+  - **The budget streak uses the same pro-rata pace as the budget meter,** so the two never disagree. It includes dad-funded expenses, like the meter. A large expense early in the month (rent) keeps it at 0 for weeks.
+  - **Finance rows sort by date, then `createdAt`.** Same-day rows no longer reshuffle after an edit, which matters now that the list is cut at 5.
+  - **Don't bring back the row pencil/trash icons** without asking Alon. This applies to finance and dad rows too.
+
 ### 2026-09-25 — Claude (Claude Code) — Habit trends card removed; the sleep list shows one night
 - **Summary:** The owner said the two sections under the habits list "look terrible and flood the user with information." At his choice, the 14-day "מגמת ההרגלים" card is deleted outright: it repeated the weekly dots every habit row already shows, and its circles scaled with the column width (about 36px on desktop), because it was never checked on screen. The sleep section keeps its chart. Below it, only the newest night shows, and the rest sit behind a native `<details>` "כל הלילות". Each night is one tappable row with its label, hours and note, and the score as a plain number. There is no ring, pencil or trash; delete moved into the editor, as it did for habits on 2026-09-18.
 - **Files touched:** `components/life/sleep.tsx`, `components/life/habits.tsx`, `app/globals.css`, `tests/habits.test.mjs`, `tests/sleep.test.mjs` (new), `CHANGELOG.md`; deleted `components/life/habit-trends.tsx`, `tests/habit-trends.test.mjs`.

@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -91,4 +91,28 @@ test('the mark pill on a stepped habit marks the next unmarked step in order, th
 test('the mark pill fills gaps left by individually-unmarked steps before advancing past the target',()=>{
   // 0 and 2 done, 1 still open: the pill must mark 1 next, not push past target.
   assert.deepEqual(toggleHabitPill([0,2],3),{stepsDone:[0,1,2],count:3,done:true});
+});
+test('perfect days need every due habit done; empty days skip, a pending today does not break the run',()=>{
+  const habit=(id,days=[0,1,2,3,4,5,6])=>({id,kind:'habit',deletedAt:null,data:{title:id,emoji:'x',startDate:'2026-09-01',days}});
+  const done=(habitId,...dates)=>dates.map(date=>({kind:'habitEntry',deletedAt:null,data:{habitId,date,done:true}}));
+  // 19–21 perfect (best 3), 22 only a (break), 23–24 perfect, 25 still pending.
+  const entries=[...done('a','2026-09-19','2026-09-20','2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25'),...done('b','2026-09-19','2026-09-20','2026-09-21','2026-09-23','2026-09-24')];
+  assert.deepEqual(perfectStreaks([habit('a'),habit('b')],entries,'2026-09-25'),{current:2,best:3});
+  // Sun–Thu habit: Thursday 17 and Sunday 20 are consecutive, Fri/Sat are skipped.
+  assert.deepEqual(perfectStreaks([habit('c',[0,1,2,3,4])],done('c','2026-09-17','2026-09-20'),'2026-09-20'),{current:2,best:2});
+  assert.deepEqual(perfectStreaks([],[],'2026-09-25'),{current:0,best:0});
+});
+test('the budget streak counts days in a row within the pro-rata monthly budget',()=>{
+  const t=(date,amount,direction='expense')=>({title:'x',category:'x',date,amount,direction});
+  assert.equal(budgetStreak([],30000,'2026-09-25'),25);
+  // 150 ₪ on the 1st of a 300 ₪ / 30-day month is back within pace from the 15th.
+  assert.equal(budgetStreak([t('2026-09-01',15000)],30000,'2026-09-25'),11);
+  assert.equal(budgetStreak([t('2026-09-25',1000000)],30000,'2026-09-25'),0);
+  assert.equal(budgetStreak([],0,'2026-09-25'),0);
+  assert.equal(budgetStreak([t('2026-09-10',99999,'income'),t('2026-08-31',99999)],30000,'2026-09-25'),25);
+});
+test('a signed amount lets Intl keep the sign beside the digits in RTL',()=>{
+  assert.match(money(5000,true),/\u200e\+/);
+  assert.match(money(-5000,true),/\u200e-/);
+  assert.doesNotMatch(money(5000),/\+/);
 });

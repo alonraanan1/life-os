@@ -1,5 +1,5 @@
 'use client';
-import {useRef,useState} from 'react';import {Download,LogOut,Pencil,RotateCcw,Upload} from 'lucide-react';import {type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
+import {useRef,useState} from 'react';import {Award,Download,LogOut,Medal,Pencil,RotateCcw,Upload} from 'lucide-react';import {MEDAL_MARKS,MEDAL_STREAKS,perfectStreaks,todayKey,type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
 const labels:Record<Kind,string>={task:'משימות',habit:'הרגלים',habitEntry:'סימוני הרגלים',transaction:'תנועות כספיות',budget:'תקציבים',goal:'מטרות',checkin:'צ׳ק־אינים',sleep:'לילות שינה',settings:'הגדרות'};
 const single:Record<Kind,string>={task:'משימה',habit:'הרגל',habitEntry:'סימון הרגל',transaction:'תנועה',budget:'תקציב',goal:'מטרה',checkin:'צ׳ק־אין',sleep:'שינה',settings:'הגדרות'};
 function titleOf(entry:Entry){const data=entry.data as Record<string,unknown>;for(const key of ['title','note','name','month','date']){const value=data[key];if(typeof value==='string'&&value.trim())return value;}return entry.id;}
@@ -11,6 +11,11 @@ export function DataView(){
   // The recovery view stays focused on active product data. Backups still
   // include every legacy kind, and the trash can can still restore them.
   const counts=(['habit','habitEntry','sleep','transaction'] as Kind[]).map(kind=>[kind,select(records,kind).length] as const).filter(([,total])=>total>0);
+  // Medals are derived from the habit history, never stored: earned ones only,
+  // plus the next goal, so the shelf rewards without listing locked clutter.
+  const perfect=perfectStreaks(select(records,'habit'),select(records,'habitEntry'),todayKey()),marks=select(records,'habitEntry').filter(e=>e.data.done).length;
+  const medals=[...MEDAL_STREAKS.filter(n=>n<=perfect.best).map(n=>({id:'streak'+n,Icon:Medal,value:n,label:'ימים מושלמים ברצף'})),...MEDAL_MARKS.filter(n=>n<=marks).map(n=>({id:'marks'+n,Icon:Award,value:n,label:'סימונים'}))];
+  const nextStreak=MEDAL_STREAKS.find(n=>n>perfect.best),nextMarks=MEDAL_MARKS.find(n=>n>marks);
   const restore=(entry:Entry)=>(save as unknown as (kind:Kind,data:unknown,existing:Entry,id?:string,deleted?:boolean)=>Promise<unknown>)(entry.kind,entry.data,entry,undefined,false);
   async function importBackup(chosen:File){
     setMessage('');setProblem('');
@@ -23,6 +28,10 @@ export function DataView(){
   async function logout(){setWorking(true);try{await fetch('/api/auth',{method:'DELETE'});}catch{}window.location.reload();}
   return <div className="content-flow">
     <section><header className="module-header"><div><h2>הפרופיל שלי</h2><p>השם שמופיע בברכה בראש המסך</p></div><button className="quiet-action" onClick={()=>setEditingName(true)}><Pencil size={17}/>שינוי שם</button></header><p className="data-note">{settings?.data.name?'שלום, '+settings.data.name+'.':'עוד לא בחרת שם להצגה.'}</p></section>
+    <section><header className="module-header"><div><h2>ההישגים שלי</h2><p>{medals.length===1?'מדליה אחת':medals.length?medals.length+' מדליות':'המדליה הראשונה בדרך'}</p></div></header>
+      {!!medals.length&&<div className="data-counts medal-shelf">{medals.map(({id,Icon,value,label})=><div key={id}><Icon size={15} aria-hidden="true"/><strong>{value}</strong><span>{label}</span></div>)}</div>}
+      <p className="field-help">{nextStreak?'המדליה הבאה: '+nextStreak+' ימים מושלמים ברצף (עוד '+(nextStreak-perfect.current)+')':nextMarks?'המדליה הבאה: '+nextMarks+' סימונים (עוד '+(nextMarks-marks)+')':'אספת את כל המדליות.'}</p>
+    </section>
     <section><header className="module-header"><div><h2>גיבוי ושחזור</h2><p>הנתונים שלך שמורים אצלך, וניתן לקחת אותם איתך</p></div></header>
       <div className="data-actions">
         <a className="primary-action" href="/api/export" download="life-os-backup.json"><Download size={17}/>הורדת גיבוי</a>

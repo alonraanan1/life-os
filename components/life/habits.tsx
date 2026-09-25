@@ -1,12 +1,11 @@
 'use client';
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
-import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Pencil,Plus,Sprout,Wind} from 'lucide-react';
-import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,scheduled,streak,todayKey,weekday,toggleHabitPill,toggleHabitStep,type Entry} from '@/lib/life-model';
+import {Activity,Bed,BookOpen,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Medal,Pencil,Plus,Sprout,Wind} from 'lucide-react';
+import {calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,MEDAL_MARKS,MEDAL_STREAKS,perfectStreaks,scheduled,streak,todayKey,weekday,toggleHabitPill,toggleHabitStep,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
-import {SleepView} from './sleep';
 
 const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 type HabitFilter='scheduled'|'all';
@@ -26,6 +25,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const [filter,setFilter]=useState<HabitFilter>('scheduled');
   const [editing,setEditing]=useState<Entry<'habit'>|null|undefined>();
   const [stepsText,setStepsText]=useState('');
+  const [cheer,setCheer]=useState(0);
+  const [medal,setMedal]=useState('');
   useEffect(()=>{if(editing!==undefined)setStepsText(editing?.data.steps?.join(', ')||'');},[editing]);
   const stepNames=stepsText.split(',').map(s=>s.trim()).filter(Boolean);
   const stepsLocked=stepNames.length>=2;
@@ -52,6 +53,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const week=calendarWeek(selected);
   const completed=dueHabits.filter(h=>entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done)).length;
   const completionPercent=dueHabits.length?Math.round(completed/dueHabits.length*100):0;
+  const perfect=perfectStreaks(habits,entries,selected);
+  const marks=entries.filter(e=>e.data.done).length;
   const habitCountLabel=habits.length===1?'הרגל פעיל':habits.length+' הרגלים פעילים';
 
   function moveDate(offset:number){
@@ -60,6 +63,18 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   }
 
   function entryId(habitId:string,day:string){return 'entry:'+habitId+':'+day;}
+
+  // Every mark goes through here. Only the tap that completes today's last due
+  // habit celebrates — never a load, refresh, date switch or Shortcut — and a
+  // tap that crosses a medal threshold names the medal once, in the summary.
+  function mark(h:Entry<'habit'>,day:string,data:HabitEntryData,old?:Entry<'habitEntry'>){
+    if(data.done&&!(old&&!old.deletedAt&&old.data.done)){
+      const closes=day===today&&selected===today&&completed===dueHabits.length-1,run=perfect.current+1;
+      if(closes)setCheer(c=>c+1);
+      setMedal(closes&&run>perfect.best&&MEDAL_STREAKS.includes(run)?run+' ימים מושלמים ברצף':MEDAL_MARKS.includes(marks+1)?(marks+1)+' סימונים':'');
+    }
+    return save('habitEntry',data,old,entryId(h.id,day));
+  }
 
   // A single control for every habit: for a target of 1 this is a plain
   // tap-to-undo toggle (the count mirrors done, 1 or 0); for a target above 1
@@ -71,7 +86,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     const target=habitTarget(h.data);
     const current=old&&!old.deletedAt?entryCount(old.data):0;
     const count=current>=target?0:current+1;
-    await save('habitEntry',{habitId:h.id,date:day,done:count>=target,count},old,id);
+    await mark(h,day,{habitId:h.id,date:day,done:count>=target,count},old);
   }
 
   // A habit with named steps replaces the counter with one chip per step;
@@ -82,7 +97,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     const target=habitTarget(h.data);
     const current=old&&!old.deletedAt?entryStepsDone(old.data):[];
     const {stepsDone,count,done}=toggleHabitStep(current,index,target);
-    await save('habitEntry',{habitId:h.id,date:day,done,count,stepsDone},old,id);
+    await mark(h,day,{habitId:h.id,date:day,done,count,stepsDone},old);
   }
 
   // The mark pill on a stepped habit is the same gesture as a numeric one:
@@ -95,11 +110,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     const target=habitTarget(h.data);
     const current=old&&!old.deletedAt?entryStepsDone(old.data):[];
     const {stepsDone,count,done}=toggleHabitPill(current,target);
-    await save('habitEntry',{habitId:h.id,date:day,done,count,stepsDone},old,id);
+    await mark(h,day,{habitId:h.id,date:day,done,count,stepsDone},old);
   }
 
-  return <>
-  <section className="habits-view">
+  return <section className="habits-view">
     <header className="module-header">
       <div>
         <h2>{compact?'הרגלים של היום':'ההרגלים שלי'}</h2>
@@ -125,8 +139,9 @@ export function HabitsView({compact=false}:{compact?:boolean}){
     <div className="habit-summary" aria-label="סיכום ביצועי הרגלים">
       <div className="habit-summary-copy">
         <span>{selected===today?'היום':readableDate(selected)}</span>
-        <strong>{dueHabits.length?completed+'/'+dueHabits.length:'—'}</strong>
-        <small>{dueHabits.length?(completed===dueHabits.length?'כל ההרגלים הושלמו':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
+        <strong key={cheer} className={cheer?'habit-cheer':undefined}>{dueHabits.length?completed+'/'+dueHabits.length:'—'}</strong>
+        <small aria-live="polite">{dueHabits.length?(completed===dueHabits.length?'יום מושלם':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
+        <small className="streak-line" aria-live="polite">{medal?<><Medal size={13} aria-hidden="true"/>מדליה חדשה · {medal}</>:perfect.current>=2&&<><Flame size={13} aria-hidden="true"/>{perfect.current} ימים מושלמים ברצף</>}</small>
       </div>
       <div className="habit-progress" role="progressbar" aria-label="השלמת ההרגלים המתוכננים" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}>
         <span style={{'--pct':completionPercent/100} as CSSProperties}/>
@@ -199,7 +214,5 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <Field label="שלבים בהרגל (רשימה מופרדת בפסיקים, 2 עד 6, אופציונלי)"><input name="steps" maxLength={200} placeholder="קריאטין, מגנזיום, תוסף" value={stepsText} onChange={e=>setStepsText(e.target.value)}/></Field>
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
-  </section>
-  {!compact&&<SleepView title="הרגל השינה"/>}
-  </>;
+  </section>;
 }

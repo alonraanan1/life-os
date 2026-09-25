@@ -58,7 +58,6 @@
   --gold-fill:#c9a13c;
   --danger:#d9342b; --danger-ink:#ffffff; --danger-tint: rgba(217,52,43,.10);
   --income: var(--success);
-  --bar: rgba(255,255,255,.92);
   --blur:24px;
 
   /* Liquid glass material — reserved for floating chrome that genuinely
@@ -256,8 +255,8 @@
      the app depends on translucency to be legible. */
   .app-sidebar, .mobile-bar, .life-editor, .filter-row, .habit-mark {
     background: var(--surface-solid) !important;
-    backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
   .habit-mark.checked {
     background: var(--success) !important;
@@ -323,8 +322,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .nav-item { color: var(--text-2); border-radius: 12px; font-weight: 600; min-height: 44px; }
 .nav-item.active { background: var(--brand-tint); color: var(--brand); }
 .nav-item svg { stroke-width: 1.8; }
-.mobile-nav { color: var(--text-3); font-size: .75rem; min-width: 0; flex: 1; font-weight: 600; }
-.mobile-nav.active { color: var(--brand); }
+.mobile-nav { color: var(--text-2); font-size: .75rem; min-width: 0; flex: 1; font-weight: 600; min-height: 50px; gap: 2px; border-radius: 999px; transition: background-color 200ms ease, color 200ms ease; }
+.mobile-nav.active { color: var(--brand); background: var(--brand-tint); }
 .mobile-nav.active span { background: transparent; }
 .mobile-nav span { padding-inline: 8px; }
 .page-lead { border-color: var(--stroke); align-items: center; }
@@ -333,7 +332,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 /* A small floating segmented control: lighter material than the sidebar/tab
    bar (half the blur radius), because a smaller surface should read as
    thinner glass, not the same thickness as a large panel. */
-.filter-row { width: fit-content; border: 0; background: var(--glass-bg); backdrop-filter: blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate)); border-radius: 12px; padding: 4px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade); }
+.filter-row { width: fit-content; border: 0; background: var(--glass-bg); -webkit-backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate));backdrop-filter:blur(calc(var(--glass-blur) * .5)) saturate(var(--glass-saturate)); border-radius: 12px; padding: 4px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade); }
 .filter-row button { border: 0; border-radius: 9px; color: var(--text-2); font-weight: 600; min-height: 36px; }
 .filter-row button.selected { background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow-pill); }
 .content-flow { padding-bottom: 16px; }
@@ -343,7 +342,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
  /* Floating chrome, not content: the sidebar is sticky and scrolls over
     section content underneath it, so a translucent glass reads correctly
     here (unlike the opaque .panel/.home-card surfaces beside it). */
- .app-sidebar { display: flex; flex-direction: column; position: sticky; top: 22px; height: calc(100vh - 44px); padding: 22px 14px; background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); border: 1px solid var(--stroke); border-radius: 24px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade), var(--shadow-float); }
+ .app-sidebar { display: flex; flex-direction: column; position: sticky; top: 22px; height: calc(100vh - 44px); padding: 22px 14px; background: var(--glass-bg); -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)); border: 1px solid var(--stroke); border-radius: 24px; box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-shade), var(--shadow-float); }
  .app-main { padding: 4px 4px 56px; }
  .app-sidebar > div:first-child { margin-bottom: 40px; }
 }
@@ -376,7 +375,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 /* The editor is the one true modal in the app: it floats over a dimmed scrim
    (base-ui's dialog overlay), so a dense glass reads real content and dimming
    through it without ever risking the form's legibility. */
-.life-editor{background:var(--glass-bg-dense)!important;backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;color:var(--text)!important;width:calc(100% - 32px)!important;max-width:500px!important;max-height:90dvh;overflow-y:auto;padding:28px!important;direction:rtl;border:1px solid var(--stroke-strong)!important;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-modal)!important}
+.life-editor{background:var(--glass-bg-dense)!important;-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;color:var(--text)!important;width:calc(100% - 32px)!important;max-width:500px!important;max-height:90dvh;overflow-y:auto;padding:28px!important;direction:rtl;border:1px solid var(--stroke-strong)!important;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-modal)!important}
 .editor-actions{display:flex;gap:12px;align-items:center;margin-top:8px}
 .editor-delete{margin-inline-start:auto}
 .quiet-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 12px;color:var(--brand);border-radius:10px;font-size:14px;font-weight:600}
@@ -511,12 +510,11 @@ i.fund-dad{background:var(--gold-fill)}
 .mood-value{font-size:26px;font-weight:700;color:var(--text)}
 .mood-value small{font-size:14px;font-weight:400;color:var(--text-2)}
 .checkin-note{white-space:pre-wrap}
-/* The one true floating chrome on mobile: fixed above scrolling content, so
-   it is glass by definition. Opacity stays high (--bar, defined above) on
-   purpose — tiny 10px labels need contrast more than they need sheerness —
-   the material feel comes from blur + saturation and the bright top edge
-   (light catching the rim) instead. */
-.mobile-bar{position:fixed;inset-inline:0;bottom:0;z-index:20;display:flex;align-items:center;justify-content:space-around;padding:8px 6px max(10px,env(safe-area-inset-bottom));background:var(--bar);border-top:1px solid var(--glass-highlight);box-shadow:var(--shadow-float);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))}
+/* The one floating chrome on mobile: a detached glass capsule that content
+   scrolls beneath, centred with logical insets. Blur + saturation carry the
+   material; the hairline and the bright top rim keep its edge on the white
+   ground. The active tab is the same brand-tint capsule as the sidebar's. */
+.mobile-bar{position:fixed;inset-inline:16px;bottom:max(12px,env(safe-area-inset-bottom));z-index:20;display:flex;gap:4px;max-width:400px;margin-inline:auto;padding:5px;border:1px solid var(--stroke);border-radius:999px;background:var(--glass-bg);box-shadow:inset 0 1px 0 var(--glass-highlight),inset 0 -1px 0 var(--glass-shade),var(--shadow-float);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))}
 @media(min-width:1024px){.mobile-bar{display:none}}
 .app-status{display:block;padding:56px 4px;color:var(--text-2);font-size:15px}
 .app-error{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;padding:14px 18px;border:1px solid var(--danger-tint);background:var(--danger-tint);border-radius:14px;color:var(--danger);font-size:14px}
@@ -567,20 +565,33 @@ i.fund-dad{background:var(--gold-fill)}
 .google-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:30px;padding:12px 20px;background:var(--surface-2);border:1px solid var(--stroke);border-radius:14px;font-size:16px;font-weight:600;color:var(--text);text-decoration:none;transition:border-color 150ms,background 150ms}
 .google-action:hover{background:var(--surface);border-color:var(--stroke-strong)}
 .google-action:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-/* A night is one tappable row: label and hours at the start, the score at
-   the end. No divider between nights, as before; the press dims the whole row
-   because .app-main>section .record-row pins the text to the edge, leaving no
-   room for a background fill. */
-.sleep-row{width:100%;text-align:start;border-top:0;padding-block:8px;border-radius:12px;transition:opacity 120ms ease}
-.sleep-row:active{opacity:.6}
-.sleep-row:focus-visible{outline-offset:-2px}
-.sleep-row .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+/* A night or a transaction is one tappable row: label at the start, the value
+   at the end, the editor holds delete. The press dims the whole row because
+   .app-main>section .record-row pins the text to the edge, leaving no room for
+   a background fill. Nights drop the divider; a month of transactions keeps it. */
+.sleep-row,.finance-row{width:100%;text-align:start;transition:opacity 120ms ease}
+.sleep-row{border-top:0;padding-block:8px;border-radius:12px}
+.sleep-row:active,.finance-row:active,.dad-row:active{opacity:.6}
+.sleep-row:focus-visible,.finance-row:focus-visible{outline-offset:-2px}
+.sleep-row .record-body>span,.finance-row .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
 .sleep-score{flex:none;font-size:17px;font-weight:600;color:var(--text)}
-.sleep-history>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-inline-start:-12px}
-.sleep-history>summary::-webkit-details-marker{display:none}
-.sleep-history>summary:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
-.sleep-history>summary svg{transition:transform 180ms ease}
-.sleep-history[open]>summary svg{transform:rotate(180deg)}
+.finance-row>bdi{flex:none}
+.sleep-history>summary,.finance-history>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-inline-start:-12px}
+.sleep-history>summary::-webkit-details-marker,.finance-history>summary::-webkit-details-marker{display:none}
+.sleep-history>summary:focus-visible,.finance-history>summary:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.sleep-history>summary svg,.finance-history>summary svg{transition:transform 180ms ease}
+.sleep-history[open]>summary svg,.finance-history[open]>summary svg{transform:rotate(180deg)}
+/* Gamification stays quiet: a gold flame line for streaks, a medal line when a
+   tap earns one, and a single count pop when a tap completes the day. No
+   confetti; the reduced-motion rule drops the pop. */
+.streak-line{display:flex;align-items:center;gap:4px}
+.streak-line:empty{display:none}
+.habit-summary-copy>.streak-line,.budget-caption.streak-line{font-size:13px;font-weight:600;color:var(--text)}
+.streak-line svg,.medal-shelf svg{flex:none;color:var(--gold)}
+.medal-shelf{margin-bottom:12px}
+.medal-shelf svg{align-self:center}
+@keyframes habit-cheer{40%{transform:scale(1.08);color:var(--success)}}
+.habit-cheer{justify-self:start;animation:habit-cheer 450ms cubic-bezier(.23,1,.32,1)}
 .activity-icon.sleep{background:var(--surface-2);color:var(--text-2)}
 .feed-value.sleep{color:var(--text-2)}
 @media(min-width:640px){.today-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
@@ -614,10 +625,10 @@ i.fund-dad{background:var(--gold-fill)}
 .dad-head small{display:block;font-size:12.5px;color:var(--text-2);font-weight:600}
 .dad-head strong{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold);font-variant-numeric:tabular-nums}
 .dad-head span{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
-.dad-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px}
+.dad-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px;transition:opacity 120ms ease}
 .dad-row:first-of-type{margin-top:12px}
-.dad-row span{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
-.dad-row p{flex:1;min-width:0;overflow-wrap:anywhere}
+.dad-row span:first-child{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
+.dad-row span+span{flex:1;min-width:0;overflow-wrap:anywhere}
 .dad-row bdi{font-weight:700;white-space:nowrap}
 /* Native date/time/number controls render their own LTR content. Inside an RTL
    form the parts get bidi-reordered into nonsense ("Sep 2026 13"), so force the
@@ -640,14 +651,6 @@ i.fund-dad{background:var(--gold-fill)}
  .date-control{flex-wrap:wrap;gap:8px}
  .date-control input{width:100%}
  .dad-row{gap:8px}
-}
-/* Seven tabs on a phone: shrink the labels so they sit side by side instead of
-   colliding, and never let the bar scroll sideways. */
-@media(max-width:520px){
- .mobile-bar{padding-inline:2px;overflow:hidden}
- .mobile-nav{font-size:10px;gap:2px;min-width:0;flex:1 1 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .mobile-nav span{padding-inline:4px}
- .mobile-nav svg{width:19px;height:19px}
 }
 /* Summary grid, cleaned up: dividers are drawn only between neighbours, and an
    odd card last in a two-column row stretches instead of leaving a dead half. */

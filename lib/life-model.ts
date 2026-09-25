@@ -80,7 +80,32 @@ export function advanceHabit(h:HabitData,previous:HabitEntryData|undefined,amoun
   return {count,done:count>=target};
 }
 export function streak(h:Entry<'habit'>,entries:Entry<'habitEntry'>[],date:string){const done=new Set(entries.filter(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.done).map(e=>e.data.date));let count=0;for(let i=0;i<36600;i++){const d=dateOffset(date,-i);if(d<h.data.startDate)break;if(!scheduled(h.data,d))continue;if(done.has(d))count++;else if(i!==0)break;}return count;}
-export function money(cents:number){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2}).format(cents/100);}
+// A perfect day has at least one habit due and every due habit done; days with
+// nothing due are skipped, and `date` itself still pending doesn't break the run.
+// `best` is the longest run ever, so a medal once earned survives a later miss.
+export function perfectStreaks(habits:Entry<'habit'>[],entries:Entry<'habitEntry'>[],date:string){
+  const live=habits.filter(h=>!h.deletedAt),done=new Set(entries.filter(e=>!e.deletedAt&&e.data.done).map(e=>e.data.habitId+'|'+e.data.date));
+  let run=0,best=0;
+  // Starts at the first done mark: no earlier day can be perfect, and a 1900 startDate can't cost 46k loops.
+  for(let d=[...done].map(k=>k.slice(-10)).sort()[0];d&&d<=date;d=dateOffset(d,1)){
+    const due=live.filter(h=>scheduled(h.data,d));
+    if(!due.length)continue;
+    if(due.every(h=>done.has(h.id+'|'+d)))best=Math.max(best,++run);else if(d!==date)run=0;
+  }
+  return {current:run,best};
+}
+// Days in a row, ending today, on which this month's spending so far stayed
+// within the pro-rata budget: the same rule as the budget meter, so they agree.
+export function budgetStreak(transactions:TransactionData[],budget:number,today:string){
+  const month=today.slice(0,7),day=Number(today.slice(8)),days=new Date(Date.UTC(Number(today.slice(0,4)),Number(today.slice(5,7)),0)).getUTCDate(),spent=Array(day+1).fill(0);
+  for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)&&t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;
+  let total=0,run=0;for(let d=1;d<=day;d++){total+=spent[d];run=total<=budget*d/days?run+1:0;}
+  return budget>0?run:0;
+}
+export const MEDAL_STREAKS=[3,7,14,30,100,365],MEDAL_MARKS=[10,50,100,500,1000];
+// `signed` lets Intl place the +/- itself, with the direction marks that keep
+// it beside the digits; a sign glued on by hand lands on the wrong side in RTL.
+export function money(cents:number,signed=false){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2,signDisplay:signed?'exceptZero':'auto'}).format(cents/100);}
 // The stored value remains decimal hours for old records and API clients.
 // In the interface, duration is entered and displayed as hours plus real minutes.
 export function sleepParts(value:number){

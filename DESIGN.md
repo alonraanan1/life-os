@@ -486,6 +486,8 @@ Avoid:
 
 Motion should support the experience rather than become the experience.
 
+Celebration is the one exception to "subtle", and it stays small. When a tap completes the day's last due habit, the completed count pops once (about 450ms, no confetti). That tap is the only trigger, never a data load. Streaks and medals are shown as quiet text lines with a gold flame or medal icon, not badges or banners.
+
 ---
 
 ## 20. Micro-interactions
@@ -716,11 +718,13 @@ Core tokens:
 - `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps, on dark ink (`#1d1d1f`).
 - `--brand` — the single interactive accent, Apple Action Blue (`#0066cc`): links, nav/filter selection, primary buttons, focus rings. `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
 - `--success` — a narrow, deliberate green (`#1f8a57`) that means "completed" only: the habit mark, the daily progress bar, the weekly history dots, goal-reached confirmations. It is not a general-purpose accent. `--income` maps to `--success` by financial convention.
-- `--gold` — kept in its existing narrow semantic role (goal amounts, the dad-card).
+- `--gold` — kept in its narrow semantic role: goal amounts, the dad-card, and the icons for streaks (flame) and medals.
 - `--danger` / `--danger-ink` — destructive actions and error states.
 - `--glass-bg` / `--glass-bg-dense` / `--glass-highlight` / `--glass-shade` / `--glass-blur` / `--glass-saturate` — the Liquid Glass material: translucency, backdrop blur with saturation, and a specular top-edge highlight.
 - `--shadow-rest` / `--shadow-pill` / `--shadow-float` / `--shadow-modal` — a four-step elevation scale. Every shadow in the app comes from one of these four, not a one-off value.
 - `--glow-a` (brand blue) / `--glow-b` (gold) — two ambient washes at roughly 4-5% opacity, fixed behind the page. Glass is invisible on a flat white ground, so the material needs faint color behind it to refract. They are not decoration.
+
+The mobile tab bar is a detached glass capsule. It floats 12px above the bottom edge, is inset 16px from each side, and is capped at 400px wide, centred with logical insets. The active tab uses the same `--brand-tint` capsule as the sidebar's active item. In every glass rule, write `-webkit-backdrop-filter` before `backdrop-filter`: the minifier keeps only the last declaration of the pair, and Chromium needs the unprefixed one.
 
 Material discipline: the glass tokens (`--glass-*`, backdrop blur) apply only to chrome that floats above content — the mobile tab bar, the desktop sidebar, the modal editor, the segmented filter control, the habit mark pill. Content surfaces — panels, cards, the budget summary, record rows — stay opaque and use the elevation shadow scale instead.
 
