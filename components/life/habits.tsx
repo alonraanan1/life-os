@@ -171,7 +171,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         const stepsList=h.data.steps;
         const doneSteps=entry?entryStepsDone(entry.data):[];
         const nextStep=stepsList?stepsList.find((_,i)=>!doneSteps.includes(i)):undefined;
-        const pillLabel=stepsList?(done?'איפוס כל השלבים של '+h.data.title:'סימון '+h.data.title+': '+nextStep):(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+'/'+target:'');
+        const pillLabel=stepsList?(done?'איפוס כל השלבים של '+h.data.title:'סימון '+h.data.title+': '+nextStep):(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+' מתוך '+target:'');
         return <div key={h.id} className="habit-record">
           <div className="record-row">
             <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
@@ -201,7 +201,10 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               const marked=!!dayEntry&&dayEntry.data.done;
               const partial=!marked&&dayCount>0&&dayCount<target;
               const canMark=day<=today&&scheduled(h.data,day);
-              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+' '+day+(marked?' בוצע':partial?' בוצע חלקית '+dayCount+'/'+target:day>today?' טרם הגיע':' לא בוצע')} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
+              // Spoken as a date and a state, not "2026-09-22": a screen reader reads an
+              // ISO date digit by digit.
+              const state=marked?'בוצע':partial?'בוצע חלקית, '+dayCount+' מתוך '+target:day>today?'טרם הגיע':scheduled(h.data,day)?'לא בוצע':'לא מתוכנן';
+              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+', '+readableDate(day)+': '+state} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
             })}
           </div>}
         </div>;
