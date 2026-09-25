@@ -54,12 +54,15 @@ export async function titlesOf<K extends 'habit'|'goal'>(kind:K):Promise<string[
   return records.filter(r=>r.kind===kind&&!r.deletedAt).map(r=>(r.data as {title:string}).title);
 }
 
-export async function upsert(db:D1Database,id:string,kind:string,data:unknown,existingVersion:number|undefined):Promise<boolean>{
+export async function upsert(db:D1Database,id:string,kind:string,data:unknown,existingVersion:number|undefined,allowDuplicate=false):Promise<boolean>{
   const now=new Date().toISOString();
   const result=existingVersion===undefined
     ?await db.prepare('INSERT OR IGNORE INTO life_records (id,kind,data,version,created_at,updated_at,deleted_at) VALUES (?,?,?,1,?,?,NULL)').bind(id,kind,JSON.stringify(data),now,now).run()
     :await db.prepare('UPDATE life_records SET data=?,version=version+1,updated_at=?,deleted_at=NULL WHERE id=? AND version=?').bind(JSON.stringify(data),now,id,existingVersion).run();
-  return !!result.meta.changes;
+  const changed=!!result.meta.changes;
+  // Only idempotent create endpoints may treat an existing id as success.
+  if(!changed&&!(allowDuplicate&&existingVersion===undefined))throw new Error('record_conflict');
+  return changed;
 }
 
 export {database};

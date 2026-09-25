@@ -1,4 +1,23 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems} from '../lib/life-model.ts';
+test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
+  const day='2026-09-25';
+  const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
+  const entry=(habitId,done,count,stepsDone)=>({kind:'habitEntry',deletedAt:null,data:{habitId,date:day,done,count,stepsDone}});
+  const habits=[habit('a','מים',{target:3}),habit('b','ויטמינים',{steps:['מגנזיום','אבץ','תוסף']}),habit('c','בוצע'),habit('d','לא היום',{days:[0]})];
+  assert.deepEqual(pendingHabitItems(habits,[entry('a',false,1),entry('b',false,1,[1]),entry('c',true,1)],day),[
+    {title:'מים — נשארו 2 מתוך 3',habitId:'a'},
+    {title:'ויטמינים: מגנזיום',habitId:'b',stepIndex:0},
+    {title:'ויטמינים: תוסף',habitId:'b',stepIndex:2},
+  ]);
+  assert.deepEqual(pendingHabitItems(habits,[entry('a',true,3),entry('b',true,3,[0,1,2]),entry('c',true,1)],day),[]);
+});
+test('sleep duration uses real minutes and rejects 80 minutes',()=>{
+  assert.deepEqual(sleepParts(6.8),{hours:6,minutes:48});
+  assert.equal(formatSleepDuration(6.8),'6:48');
+  assert.equal(sleepHoursFromParts(6,48),6.8);
+  assert.throws(()=>sleepHoursFromParts(6,80));
+  assert.throws(()=>sleepHoursFromParts(24,1));
+});
 test('rejects invalid dates and fractional money',()=>{assert.throws(()=>validate('transaction',{title:'x',category:'x',date:'2026-02-30',amount:100,direction:'expense'}));assert.throws(()=>validate('transaction',{title:'x',category:'x',date:'2026-02-28',amount:1.2,direction:'expense'}));});
 test('streak skips unscheduled days, allows today pending, breaks at missing scheduled day',()=>{const h={id:'h',data:{title:'x',emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4]}};const entries=['2026-09-09','2026-09-10'].map(date=>({deletedAt:null,data:{habitId:'h',date,done:true}}));assert.equal(streak(h,entries,'2026-09-13'),2);assert.equal(streak(h,entries,'2026-09-14'),0);assert.equal(scheduled(h.data,'2026-09-12'),false);});
 test('calendar helpers handle month boundaries and Israel timezone',()=>{assert.equal(dateOffset('2026-03-01',-1),'2026-02-28');assert.equal(todayKey(new Date('2026-09-11T22:00:00Z')),'2026-09-12');});
@@ -11,6 +30,18 @@ test('legacy DAD_CATEGORY rows read as dad-funded with category אחר',()=>{con
 test('a row with an explicit funder and a real category keeps that category',()=>{const t={title:'x',category:'אוכל',date:'2026-09-01',amount:100,direction:'expense',funder:'dad'};assert.equal(effectiveFunder(t),'dad');assert.equal(effectiveCategory(t),'אוכל');});
 test('a plain old row with no funder reads as me',()=>{const t={title:'x',category:'אוכל',date:'2026-09-01',amount:100,direction:'expense'};assert.equal(effectiveFunder(t),'me');assert.equal(effectiveCategory(t),'אוכל');});
 test('validation rejects a bogus funder value by defaulting it to me',()=>{const r=validate('transaction',{title:'x',category:'אוכל',date:'2026-09-01',amount:100,direction:'expense',funder:'grandpa'});assert.equal(r.funder,'me');});
+test('transaction validation preserves location and review state while old records stay compatible',()=>{
+  const base={title:'בית קפה',category:'לבירור',date:'2026-09-01',amount:1290,direction:'expense',funder:'dad'};
+  assert.deepEqual(validate('transaction',{...base,location:'תל אביב',reviewStatus:'pending'}),{...base,location:'תל אביב',reviewStatus:'pending'});
+  assert.equal(validate('transaction',base).reviewStatus,undefined);
+  assert.throws(()=>validate('transaction',{...base,reviewStatus:'approved'}));
+});
+test('dad charges require a place while personal charges can complete without one',()=>{
+  const base={title:'בית קפה',category:'אוכל',date:'2026-09-01',amount:1290,direction:'expense'};
+  assert.deepEqual(expenseMissingFields({...base,funder:'dad',location:''}),['location']);
+  assert.deepEqual(expenseMissingFields({...base,funder:'me',location:''}),[]);
+  assert.deepEqual(expenseMissingFields({...base,funder:'dad',location:'תל אביב',category:'לבירור'}),['category']);
+});
 test('habit target validation accepts 3 and rejects 0, 11 and non-integers',()=>{const base={title:'x',emoji:'x',startDate:'2026-09-01',days:[0]};assert.equal(validate('habit',{...base,target:3}).target,3);assert.throws(()=>validate('habit',{...base,target:0}));assert.throws(()=>validate('habit',{...base,target:11}));assert.throws(()=>validate('habit',{...base,target:2.5}));});
 test('habit entry count validation accepts a valid count',()=>{const r=validate('habitEntry',{habitId:'h',date:'2026-09-01',done:false,count:2});assert.equal(r.count,2);});
 test('entryCount maps a legacy entry with no count from the done boolean',()=>{assert.equal(entryCount({habitId:'h',date:'2026-09-01',done:true}),1);assert.equal(entryCount({habitId:'h',date:'2026-09-01',done:false}),0);});

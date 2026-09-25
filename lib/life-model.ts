@@ -1,7 +1,7 @@
 export type TaskData={title:string;date:string;time:string;done:boolean;completedAt:string};
 export type HabitData={title:string;emoji:string;days:number[];startDate:string;target?:number;steps?:string[]};
 export type HabitEntryData={habitId:string;date:string;done:boolean;count?:number;stepsDone?:number[]};
-export type TransactionData={title:string;category:string;date:string;amount:number;direction:'expense'|'income';funder?:'me'|'dad'};
+export type TransactionData={title:string;category:string;date:string;amount:number;direction:'expense'|'income';funder?:'me'|'dad';location?:string;reviewStatus?:'pending'|'complete';source?:'wallet'|'bank'};
 export type BudgetData={month:string;amount:number};
 export type GoalData={title:string;target:number;current:number;unit:string;date:string};
 export type CheckinData={date:string;mood:number;note:string};
@@ -18,6 +18,13 @@ export const kinds:Kind[]=['task','habit','habitEntry','transaction','budget','g
 export const DAD_CATEGORY='הוצאות אבא';
 export function effectiveFunder(t:TransactionData){return t.category===DAD_CATEGORY?'dad':(t.funder||'me');}
 export function effectiveCategory(t:TransactionData){return t.category===DAD_CATEGORY?'אחר':t.category;}
+export function expenseMissingFields(t:TransactionData):Array<'title'|'category'|'location'>{
+  const missing:Array<'title'|'category'|'location'>=[];
+  if(!t.title.trim()||['חיוב חדש','חיוב ללא בית עסק','חיוב באשראי של אבא'].includes(t.title.trim()))missing.push('title');
+  if(!t.category.trim()||t.category==='לבירור'||t.category===DAD_CATEGORY)missing.push('category');
+  if(effectiveFunder(t)==='dad'&&!t.location?.trim())missing.push('location');
+  return missing;
+}
 export function todayKey(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
 export function dateOffset(date:string,days:number){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 export function weekday(date:string){return new Date(date+'T12:00:00Z').getUTCDay();}
@@ -37,6 +44,19 @@ export function entryCount(e:HabitEntryData){return e.count??(e.done?1:0);}
 // toggleHabitStep). Tolerant of an index a later habit edit removed: it is
 // simply not among the current step indices when read back.
 export function entryStepsDone(e:HabitEntryData):number[]{return e.stepsDone??Array.from({length:entryCount(e)},(_,i)=>i);}
+export function pendingHabitItems(habits:Entry<'habit'>[],entries:Entry<'habitEntry'>[],day:string){
+  return habits.filter(h=>!h.deletedAt&&scheduled(h.data,day)).flatMap((h):{habitId:string;title:string;stepIndex?:number}[]=>{
+    const entry=entries.find(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.date===day);
+    if(entry?.data.done)return [];
+    const target=habitTarget(h.data);
+    if(h.data.steps){
+      const done=entry?entryStepsDone(entry.data):[];
+      return h.data.steps.flatMap((step,index)=>done.includes(index)?[]:[{habitId:h.id,stepIndex:index,title:h.data.title+': '+step}]);
+    }
+    const remaining=Math.max(0,target-(entry?entryCount(entry.data):0));
+    return remaining?[{habitId:h.id,title:target===1?h.data.title:h.data.title+' — נשארו '+remaining+' מתוך '+target}]:[];
+  });
+}
 // The one place that mutates a day's step set: toggles `index` in or out and
 // derives count/done from the result, so they can never disagree with it.
 export function toggleHabitStep(current:number[],index:number,target:number){const stepsDone=current.includes(index)?current.filter(i=>i!==index):[...current,index].sort((a,b)=>a-b);return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};}
@@ -46,8 +66,33 @@ export function toggleHabitStep(current:number[],index:number,target:number){con
 // indices) to toggle - rather than recomputing stepsDone/count/done a second
 // way, so that rule stays defined in exactly one place.
 export function toggleHabitPill(current:number[],target:number){return current.length>=target?current.reduce((acc,index)=>toggleHabitStep(acc.stepsDone,index,target),{stepsDone:current,count:0,done:false}):toggleHabitStep(current,Array.from({length:target},(_,i)=>i).find(i=>!current.includes(i))??0,target);}
+// Shortcut calls add progress without wrapping a completed day back to zero.
+// Preserve named-step identity even when an older shortcut supplies only a count.
+export function advanceHabit(h:HabitData,previous:HabitEntryData|undefined,amount=1){
+  const target=habitTarget(h);
+  if(h.steps){
+    let stepsDone=previous?entryStepsDone(previous):[];
+    const additions=Math.min(amount,Math.max(0,target-stepsDone.length));
+    for(let i=0;i<additions;i++)stepsDone=toggleHabitPill(stepsDone,target).stepsDone;
+    return {stepsDone,count:stepsDone.length,done:stepsDone.length>=target};
+  }
+  const count=Math.min(target,(previous?entryCount(previous):0)+amount);
+  return {count,done:count>=target};
+}
 export function streak(h:Entry<'habit'>,entries:Entry<'habitEntry'>[],date:string){const done=new Set(entries.filter(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.done).map(e=>e.data.date));let count=0;for(let i=0;i<36600;i++){const d=dateOffset(date,-i);if(d<h.data.startDate)break;if(!scheduled(h.data,d))continue;if(done.has(d))count++;else if(i!==0)break;}return count;}
 export function money(cents:number){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2}).format(cents/100);}
+// The stored value remains decimal hours for old records and API clients.
+// In the interface, duration is entered and displayed as hours plus real minutes.
+export function sleepParts(value:number){
+  if(!Number.isFinite(value)||value<0||value>24)throw new Error('משך שינה לא תקין');
+  const total=Math.round(value*60);
+  return {hours:Math.floor(total/60),minutes:total%60};
+}
+export function sleepHoursFromParts(hours:number,minutes:number){
+  if(!Number.isInteger(hours)||!Number.isInteger(minutes)||hours<0||hours>24||minutes<0||minutes>59||(hours===24&&minutes>0))throw new Error('יש להזין דקות בין 0 ל־59');
+  return (hours*60+minutes)/60;
+}
+export function formatSleepDuration(value:number){const {hours,minutes}=sleepParts(value);return hours+':'+String(minutes).padStart(2,'0');}
 function text(v:unknown,max=200,required=true):string {if(typeof v!=='string'||v.length>max||(required&&!v.trim()))throw new Error('טקסט חסר או ארוך מדי');return v.trim();}
 function number(v:unknown,min=0,max=100000000000){if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw new Error('מספר לא תקין');return v;}
 function date(v:unknown,optional=false){if(optional&&v==='')return '';const s=text(v,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s+'T12:00:00Z').toISOString().slice(0,10)!==s)throw new Error('תאריך לא תקין');return s;}
@@ -62,7 +107,7 @@ switch(kind){
 case 'task':{const time=text(d.time,5,false);if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))throw new Error('שעה לא תקינה');const completedAt=text(d.completedAt,30,false);if(completedAt&&!Number.isFinite(Date.parse(completedAt)))throw new Error('תאריך השלמה לא תקין');result={title:text(d.title),date:date(d.date,true),time,done:bool(d.done),completedAt};break;}
 case 'habit':{if(!Array.isArray(d.days)||d.days.length<1||d.days.length>7||d.days.some(x=>!Number.isInteger(x)||x<0||x>6))throw new Error('יש לבחור ימי ביצוע');result={title:text(d.title),emoji:text(d.emoji,12),days:[...new Set(d.days)],startDate:date(d.startDate),target:target(d.target),steps:steps(d.steps)};break;}
 case 'habitEntry':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לסמן הרגל בעתיד');result={habitId:text(d.habitId,100),date:day,done:bool(d.done),count:count(d.count),stepsDone:stepsDone(d.stepsDone)};break;}
-case 'transaction':{if(d.direction!=='expense'&&d.direction!=='income')throw new Error('סוג תנועה לא תקין');if(cents(d.amount)<=0)throw new Error('הסכום חייב להיות חיובי');const funder=d.funder==='me'||d.funder==='dad'?d.funder:'me';result={title:text(d.title),category:text(d.category,80),date:date(d.date),amount:cents(d.amount),direction:d.direction,funder};break;}
+case 'transaction':{if(d.direction!=='expense'&&d.direction!=='income')throw new Error('סוג תנועה לא תקין');if(cents(d.amount)<=0)throw new Error('הסכום חייב להיות חיובי');const funder=d.funder==='me'||d.funder==='dad'?d.funder:'me';if(d.reviewStatus!==undefined&&d.reviewStatus!=='pending'&&d.reviewStatus!=='complete')throw new Error('מצב בדיקה לא תקין');if(d.source!==undefined&&d.source!=='wallet'&&d.source!=='bank')throw new Error('מקור חיוב לא תקין');result={title:text(d.title),category:text(d.category,80),date:date(d.date),amount:cents(d.amount),direction:d.direction,funder,...(d.location===undefined?{}:{location:text(d.location,200,false)}),...(d.reviewStatus===undefined?{}:{reviewStatus:d.reviewStatus}),...(d.source===undefined?{}:{source:d.source})};break;}
 case 'budget':{const month=text(d.month,7);if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('חודש לא תקין');result={month,amount:cents(d.amount)};break;}
 case 'goal':result={title:text(d.title),target:number(d.target,0.01),current:number(d.current),unit:text(d.unit,30),date:date(d.date,true)};break;
 case 'checkin':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לתעד צ׳ק־אין בעתיד');const mood=number(d.mood,1,5);if(!Number.isInteger(mood))throw new Error('דירוג לא תקין');result={date:day,mood,note:text(d.note,3000,false)};break;}

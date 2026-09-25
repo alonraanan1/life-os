@@ -143,3 +143,10 @@ To keep hand-offs smooth:
 3. If you made a non-obvious architectural, data, or design decision, note it in the changelog entry so the next AI doesn't silently reverse it.
 
 This is in addition to, not a replacement for, the design rules above.
+
+## Coordinated GPT and Claude work
+
+For user-requested multi-agent work, follow `docs/AGENT_WORKFLOW.md`.
+Codex is the integrator; GPT coordinators may dispatch bounded Claude workers.
+Use one writer per isolated worktree and explicit file ownership per task.
+Workers report their changes and validation; only the integrator accepts results.

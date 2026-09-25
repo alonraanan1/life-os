@@ -1,5 +1,5 @@
 'use client';
-import {ArrowLeft,CheckCircle2,Flame,Moon,Smile,WalletCards} from 'lucide-react';import {money,scheduled,todayKey} from '@/lib/life-model';import {select,useLife} from './use-life';import {FinanceView} from './finance';import {TasksView} from './tasks';import {HabitsView} from './habits';import {GoalsView,CheckinsView} from './goals';import {SleepView} from './sleep';import {buildFeed,FeedList} from './timeline';import type {View} from './nav';
+import {ArrowLeft,CheckCircle2,Flame,Moon,Smile,WalletCards} from 'lucide-react';import {formatSleepDuration,money,scheduled,todayKey} from '@/lib/life-model';import {select,useLife} from './use-life';import {FinanceView} from './finance';import {TasksView} from './tasks';import {HabitsView} from './habits';import {GoalsView,CheckinsView} from './goals';import {SleepView} from './sleep';import {buildFeed,FeedList} from './timeline';import type {View} from './nav';
 export function TodayView({onNavigate}:{onNavigate:(view:View)=>void}){
   const {records}=useLife();const today=todayKey();
   const open=select(records,'task').filter(t=>!t.data.done);
@@ -14,7 +14,7 @@ export function TodayView({onNavigate}:{onNavigate:(view:View)=>void}){
     {key:'tasks',label:'משימות פתוחות להיום',value:String(dueToday),note:overdue?overdue+' באיחור':dueToday?'אפשר להתחיל':'אין מה שממתין',icon:CheckCircle2,view:'tasks' as View},
     {key:'habits',label:'הרגלים היום',value:due.length?marked+'/'+due.length:'—',note:!due.length?'אין הרגלים מתוכננים':marked===due.length?'סיימת הכול':'נשארו '+(due.length-marked),icon:Flame,view:'habits' as View},
     {key:'money',label:'הוצאות היום',value:money(spent),note:'מתעדכן עם כל תנועה',icon:WalletCards,view:'finance' as View},
-    {key:'sleep',label:'ציון שינה',value:night?.data.score?String(night.data.score):'—',note:night?.data.hours?night.data.hours+' שעות':night?.data.score?'נשמר ללילה האחרון':'עוד לא תועד',icon:Moon,view:'sleep' as View},
+    {key:'sleep',label:'ציון שינה',value:night?.data.score?String(night.data.score):'—',note:night?.data.hours?formatSleepDuration(night.data.hours)+' שעות':night?.data.score?'נשמר ללילה האחרון':'עוד לא תועד',icon:Moon,view:'sleep' as View},
     {key:'mood',label:'צ׳ק־אין',value:checkin?checkin.data.mood+'/5':'—',note:checkin?'נשמר להיום':'איך עבר עליך היום?',icon:Smile,view:'timeline' as View},
   ];
   return <div className="content-flow">

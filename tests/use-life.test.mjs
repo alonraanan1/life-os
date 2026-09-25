@@ -78,6 +78,53 @@ async function mount(t,initial=[],{load=true}={}){
   return harness;
 }
 
+test('failed first write cancels dependent taps and removes the phantom entry',async t=>{
+  const h=await mount(t,[]);
+  const base={habitId:'h',date:'2026-09-18',done:false};
+  const first=await h.startSave('habitEntry',{...base,count:1},undefined,'entry:h');
+  const second=await h.startSave('habitEntry',{...base,count:2},h.store.records[0]);
+  await h.respond(first.request,{error:'offline'},503);
+  assert.equal(h.requests.filter(r=>r.method==='POST').length,1,'dependent write must not reach the server');
+  await assert.rejects(first.promise,/offline/);
+  await assert.rejects(second.promise,/offline/);
+  assert.deepEqual(h.store.records,[]);
+  assert.equal(h.store.busy,false);
+});
+
+test('failed middle write restores the last confirmed version and allows a fresh retry',async t=>{
+  const a=habitEntry('a',0),h=await mount(t,[a]);
+  const first=await h.startSave('habitEntry',{...a.data,count:1},a);
+  const second=await h.startSave('habitEntry',{...a.data,count:2},h.store.records[0]);
+  const third=await h.startSave('habitEntry',{...a.data,count:3,done:true},h.store.records[0]);
+  const confirmed={...a,data:{...a.data,count:1},version:5};
+  await h.respond(first.request,{record:confirmed});
+  await first.promise;
+  await h.respond(h.requests.at(-1),{error:'offline'},503);
+  assert.equal(h.requests.filter(r=>r.method==='POST').length,2);
+  await assert.rejects(second.promise,/offline/);
+  await assert.rejects(third.promise,/offline/);
+  assert.deepEqual(h.store.records,[confirmed]);
+  const retry=await h.startSave('habitEntry',{...a.data,count:2},h.store.records[0]);
+  assert.equal(retry.request.body.version,5);
+  await h.respond(retry.request,{record:{...confirmed,data:{...a.data,count:2},version:6}});
+  await retry.promise;
+  assert.equal(h.store.records[0].version,6);
+});
+
+test('refresh requested during saves waits and loads imported records when the queue drains',async t=>{
+  const a=habitEntry('a'),h=await mount(t,[a]);
+  const write=await h.startSave('habitEntry',{...a.data,count:2},a);
+  const refresh1=await h.startRefresh(),refresh2=await h.startRefresh();
+  assert.equal(h.requests.filter(r=>r.method==='GET').length,1);
+  await h.respond(write.request,{record:{...a,version:5}});
+  await write.promise;
+  assert.equal(h.requests.filter(r=>r.method==='GET').length,2,'deferred refreshes share one GET');
+  const imported=transaction('imported');
+  await h.respond(h.requests.at(-1),{records:[{...a,version:5},imported]});
+  await Promise.all([refresh1.promise,refresh2.promise]);
+  assert.ok(h.store.records.some(r=>r.id==='imported'));
+});
+
 test('pending is a render snapshot and parallel saves release their own locks',async t=>{
   const a=habitEntry('a'),b=habitEntry('b');
   const h=await mount(t,[a,b]);

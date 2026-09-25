@@ -8,7 +8,7 @@ export async function POST(request:Request){
     const input=await readBody(request);
     const data=validate('task',{title:input.title,date:typeof input.date==='string'?input.date:'',time:typeof input.time==='string'?input.time:'',done:false,completedAt:''});
     const id=await externalRecordId(input.externalId);
-    const created=await upsert(database(),id,'task',data,undefined);
+    const created=await upsert(database(),id,'task',data,undefined,true);
     return json({id,created},created?201:200);
   }catch(e){
     const message=e instanceof Error?e.message:'';

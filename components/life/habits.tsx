@@ -7,6 +7,7 @@ import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
 import {SleepView} from './sleep';
+import {HabitTrends} from './habit-trends';
 
 const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 type HabitFilter='scheduled'|'all';
@@ -65,6 +66,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   // tap-to-undo toggle (the count mirrors done, 1 or 0); for a target above 1
   // each tap adds one and a completed day wraps back to zero, same gesture.
   async function toggle(h:Entry<'habit'>,day:string){
+    if(h.data.steps)return togglePill(h,day);
     const id=entryId(h.id,day);
     const old=records.find(e=>e.id===id) as Entry<'habitEntry'>|undefined;
     const target=habitTarget(h.data);
@@ -199,6 +201,6 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>
-  {!compact&&<SleepView title="הרגל השינה"/>}
+  {!compact&&<><HabitTrends habits={habits} entries={entries} today={today}/><SleepView title="הרגל השינה"/></>}
   </>;
 }

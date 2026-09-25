@@ -1,5 +1,5 @@
 'use client';
-import {useState,type CSSProperties} from 'react';import {Pencil,Plus,Trash2} from 'lucide-react';import {dateOffset,todayKey,type Entry} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';import {SleepChart} from './sleep-chart';
+import {useState,type CSSProperties} from 'react';import {Pencil,Plus,Trash2} from 'lucide-react';import {formatSleepDuration,sleepHoursFromParts,sleepParts,todayKey,type Entry} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';import {SleepChart} from './sleep-chart';
 // Only "last night" is unambiguous in words — a record dated yesterday is the
 // night before that, which "אתמול" would describe wrongly, so it gets a date.
 export function nightLabel(date:string,today:string){if(date===today)return 'הלילה האחרון';return new Date(date+'T12:00:00Z').toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});}
@@ -14,14 +14,14 @@ export function SleepView({compact=false,title}:{compact?:boolean;title?:string}
   {!compact&&<SleepChart nights={nights}/>}
   {shown.map(night=>{const pct=Math.min(100,night.data.score);return <article className="sleep-record" key={night.id}><div className="record-row">
     <div className="ring" role="progressbar" aria-label={'ציון שינה '+night.data.date} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} style={{'--pct':pct} as CSSProperties}><div className="hole"><span className="num">{night.data.score||'—'}</span></div></div>
-    <div className="record-body"><p>{nightLabel(night.data.date,today)}</p><small>{night.data.hours?night.data.hours+' שעות שינה':'ללא שעות'}{night.data.note?' · '+night.data.note:''}</small></div>
+    <div className="record-body"><p>{nightLabel(night.data.date,today)}</p><small>{night.data.hours?formatSleepDuration(night.data.hours)+' שעות שינה':'ללא שעות'}{night.data.note?' · '+night.data.note:''}</small></div>
     <button className="icon-action" aria-label={'עריכת '+night.data.date} onClick={()=>setEditing(night)}><Pencil size={17}/></button>
     {!compact&&<button className="icon-action" disabled={busy} aria-label={'מחיקת '+night.data.date} onClick={()=>{void save('sleep',night.data,night,undefined,true).catch(()=>{});}}><Trash2 size={17}/></button>}
   </div></article>;})}
   {!shown.length&&<Empty title={compact?'עוד לא תועד לילה':'איך ישנת אתמול?'} text="הציון מגיע מהשעון, ואפשר להוסיף גם כמה שעות ישנת." action="הוספת לילה" onAction={()=>setEditing(null)}/>}
-  {editing!==undefined&&<Editor title={editing?'עדכון לילה':'לילה חדש'} onClose={()=>setEditing(undefined)} onSave={f=>{const date=field(f,'date'),id='sleep:'+date;const existing=records.find(r=>r.id===id) as Entry<'sleep'>|undefined;return save('sleep',{date,score:Number(field(f,'score')||0),hours:Number(field(f,'hours')||0),note:field(f,'note')},existing,id);}}>
+  {editing!==undefined&&<Editor title={editing?'עדכון לילה':'לילה חדש'} onClose={()=>setEditing(undefined)} onSave={f=>{const date=field(f,'date'),id='sleep:'+date;const existing=records.find(r=>r.id===id) as Entry<'sleep'>|undefined;return save('sleep',{date,score:Number(field(f,'score')||0),hours:sleepHoursFromParts(Number(field(f,'hours')||0),Number(field(f,'minutes')||0)),note:field(f,'note')},existing,id);}}>
     <Field label="תאריך"><input name="date" type="date" required max={today} readOnly={!!editing} defaultValue={editing?.data.date||today}/></Field>
-    <div className="form-columns"><Field label="ציון שינה (0-100)"><input name="score" type="number" min="0" max="100" step="1" defaultValue={editing?.data.score||''}/></Field><Field label="שעות שינה"><input name="hours" type="number" inputMode="decimal" min="0" max="24" step="any" defaultValue={editing?.data.hours||''}/></Field></div>
+    <div className="form-columns"><Field label="ציון שינה (0-100)"><input name="score" type="number" min="0" max="100" step="1" defaultValue={editing?.data.score||''}/></Field><Field label="שעות שינה"><input name="hours" type="number" inputMode="numeric" min="0" max="24" step="1" defaultValue={editing?.data.hours?sleepParts(editing.data.hours).hours:''}/></Field><Field label="דקות שינה (0-59)"><input name="minutes" type="number" inputMode="numeric" min="0" max="59" step="1" defaultValue={editing?.data.hours?sleepParts(editing.data.hours).minutes:''}/></Field></div>
     <Field label="הערה (רשות)"><textarea name="note" rows={3} maxLength={3000} defaultValue={editing?.data.note}/></Field>
     <p className="field-help">מספיק אחד מהשניים — ציון או שעות. לכל לילה נשמרת רשומה אחת.</p>
   </Editor>}</section>;

@@ -1,5 +1,5 @@
 import {json} from '@/lib/auth';
-import {DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,money,scheduled,streak,todayKey,toggleHabitStep,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
+import {advanceHabit,DAD_CATEGORY,entryStepsDone,habitTarget,money,scheduled,streak,todayKey,toggleHabitStep,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
 import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
 
@@ -129,11 +129,12 @@ async function markHabit(s:State,title:string,value:string){
   const id='entry:'+habit.id+':'+s.today;
   const existing=await oneRecord(id);
   const target=habitTarget(habit.data);
-  const current=existing&&!existing.deletedAt?entryCount(existing.data as HabitEntryData):0;
+  const previous=existing&&!existing.deletedAt?existing.data as HabitEntryData:undefined;
   const parsed=num(value);
   const add=typeof parsed==='number'&&parsed>=0?Math.round(parsed):1;
-  const count=Math.min(target,current+add);
-  const data=validate('habitEntry',{habitId:habit.id,date:s.today,done:count>=target,count});
+  const progress=advanceHabit(habit.data,previous,add);
+  const {count}=progress;
+  const data=validate('habitEntry',{habitId:habit.id,date:s.today,...progress});
   await upsert(database(),id,'habitEntry',data,existing?.version);
   const entries=[...s.entries.filter(e=>e.id!==id),{...existing,id,kind:'habitEntry',data,version:1,createdAt:'',updatedAt:'',deletedAt:null} as Entry<'habitEntry'>];
   return 'סומן: '+habit.data.title+(target>1?' ('+count+'/'+target+')':'')+' · רצף '+streak(habit,entries,s.today);
@@ -176,7 +177,8 @@ async function recordExpense(s:State,value:string,fixedCategory?:string){
   const rest=words(value);
   const category=fixedCategory||rest.shift()||'אחר';
   const title=rest.join(' ')||(fixedCategory?'חיוב באשראי של אבא':category);
-  const data=validate('transaction',{title,category,date:s.today,amount:Math.round(amount*100),direction:'expense'});
+  const data=validate('transaction',{title,category,date:s.today,amount:Math.round(amount*100),direction:'expense',
+    ...(fixedCategory?{funder:'dad',location:'',reviewStatus:'pending'}:{})});
   await upsert(database(),crypto.randomUUID(),'transaction',data,undefined);
   return 'נרשמה הוצאה: '+money(data.amount)+' · '+category+(title!==category?' · '+title:'');
 }
@@ -211,6 +213,10 @@ export async function POST(request:Request){
     return json({ok:true,message});
   }catch(e){
     const text=e instanceof Error?e.message:'';
+    if(text==='record_conflict'){
+      const message='הרשומה השתנתה במקביל. רענן ונסה שוב.';
+      return wantsPlain(request)?plainText(message,409):json({error:text,message},409);
+    }
     if(text==='request_too_large')return json({error:text},413);
     if(text==='storage_unavailable')return json({error:text},503);
     if(wantsPlain(request))return plainText(text||'הבקשה לא הצליחה',400);

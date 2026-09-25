@@ -1,0 +1,11 @@
+{
+  "id": "T001",
+  "coordinator": "GPT coordinator assigned by Codex",
+  "baseSha": "REPLACE_WITH_FULL_BASELINE_SHA",
+  "objective": "REPLACE_WITH_ONE_BOUNDED_TASK",
+  "ownedFiles": ["REPLACE_WITH_EXACT_REPOSITORY_RELATIVE_FILE"],
+  "acceptance": ["REPLACE_WITH_OBSERVABLE_SUCCESS_CRITERION"],
+  "context": "Dependencies, decisions, previous attempt results, and anything out of scope.",
+  "budgetUsd": 1,
+  "timeoutSeconds": 600
+}

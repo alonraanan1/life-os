@@ -23,6 +23,7 @@ export async function POST(request:Request){
     return json({ok:true,goal:data.title,current:data.current,target:data.target,pct});
   }catch(e){
     const message=e instanceof Error?e.message:'';
+    if(message==='record_conflict')return json({error:message},409);
     if(message==='request_too_large')return json({error:message},413);
     if(message==='storage_unavailable')return json({error:message},503);
     return json({error:message||'invalid_request'},400);
