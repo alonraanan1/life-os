@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -128,4 +128,13 @@ test('a payment to dad settles the oldest charges first and never counts as spen
   assert.deepEqual(validate('dadPayment',{date:'2026-09-25',amount:5000,extra:1}),{date:'2026-09-25',amount:5000});
   assert.throws(()=>validate('dadPayment',{date:'2026-09-25',amount:0}));
   assert.throws(()=>validate('dadPayment',{date:'2026-09-25',amount:12.5}));
+});
+test('the server settles done from the habit target, not from what the screen sent',()=>{
+  const plain={title:'x',emoji:'x',days:[0],startDate:'2026-09-01',target:3},stepped={...plain,steps:['a','b'],target:2};
+  const day={habitId:'h',date:'2026-09-20'};
+  assert.equal(settleEntry(plain,{...day,done:true,count:2}).done,false);
+  assert.equal(settleEntry(plain,{...day,done:false,count:3}).done,true);
+  assert.deepEqual(settleEntry(stepped,{...day,done:false,count:0,stepsDone:[0,1]}),{...day,done:true,count:2,stepsDone:[0,1]});
+  // A legacy mark with no count stays exactly as sent.
+  assert.deepEqual(settleEntry(plain,{...day,done:true}),{...day,done:true});
 });

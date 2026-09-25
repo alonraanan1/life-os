@@ -19,6 +19,14 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Backlog pass 3: the server settles habit completion; finance cards align
+- **Summary:**
+  - **`POST /api/records` no longer trusts the screen's `done` for a habit day.** The route already reads the parent habit, so it now runs the entry through `settleEntry()` (`lib/life-model.ts`): `done` is `count >= target` from the habit as stored, with `count` taken from `stepsDone` for a stepped habit. The Shortcut routes already derived it this way via `advanceHabit()`. A legacy entry with no `count` is stored as sent. Only a screen holding an outdated habit (the target changed on another device) sees a difference, and it reconciles to the stored record.
+  - **The dad card has the budget card's inset and radius,** so the amounts in both end at the same x (they were 4px apart on a phone; the dad card's base rule also overrode its phone padding, because it came later in the file).
+- **Files touched:** `lib/life-model.ts`, `app/api/records/route.ts`, `app/globals.css`, `tests/model.test.mjs`, `CHANGELOG.md`.
+- **Validation:** 77/77 tests (one new, for `settleEntry`), typecheck, lint, build. Preview at 390px: labels end at 326 and amounts at 64 in both cards.
+- **Open items / notes for the next AI:** none from this pass.
+
 ### 2026-09-25 — Claude (Claude Code) — Backlog pass 2: dead code, dependencies, lint and docs
 - **Summary:** The code-health items from the Backlog.
   - **Deleted, unreachable from the app:** `supabase/`, `lib/supabase.ts`, `db/index.ts` (`getDb`; `lib/auth.ts` has its own `database()`), `hooks/use-mobile.ts`, and 58 of the 60 shadcn scaffolds in `components/ui` (only `button` and `dialog` are imported).
