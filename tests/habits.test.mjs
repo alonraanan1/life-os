@@ -72,3 +72,9 @@ test('the tap that completes the last due habit celebrates',async t=>{
   await act(async()=>document.querySelector('[aria-label="סימון ב"]').click());
   assert.ok(document.querySelector('.habit-cheer'));
 });
+
+test('before the first habit, only the empty state shows',async t=>{
+  await mount(t,[]);
+  assert.equal(document.querySelector('.habit-toolbar'),null);
+  assert.equal(document.querySelector('.habit-summary'),null);
+});

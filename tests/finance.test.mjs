@@ -93,3 +93,13 @@ test('the dad card shows this month and the open balance, not the charges, and p
   assert.equal(globalThis.__financeEditor.title,'תשלום לאבא');
   assert.equal(globalThis.__financeEditor.onDelete,undefined);
 });
+
+test('a month with no transactions shows no zero figures',async t=>{
+  await mount(t,[]);
+  assert.equal(document.querySelector('.finance-metrics'),null);
+});
+
+test('a month with a transaction shows its figures',async t=>{
+  await mount(t,[expense(1)]);
+  assert.ok(document.querySelector('.finance-metrics'));
+});
