@@ -19,6 +19,16 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Backlog pass 2: dead code, dependencies, lint and docs
+- **Summary:** The code-health items from the Backlog.
+  - **Deleted, unreachable from the app:** `supabase/`, `lib/supabase.ts`, `db/index.ts` (`getDb`; `lib/auth.ts` has its own `database()`), `hooks/use-mobile.ts`, and 58 of the 60 shadcn scaffolds in `components/ui` (only `button` and `dialog` are imported).
+  - **Uninstalled** the 7 packages only those scaffolds used: `cmdk`, `date-fns`, `embla-carousel-react`, `input-otp`, `react-day-picker`, `react-resizable-panels`, `recharts` (69 packages with their trees). No version changed and nothing was added to the lockfile.
+  - **Lint passes repo-wide.** `.claude/**` (vendored skill scripts) and `work/**` (agent worktrees) are ignored. Real fixes: `field()` no longer stringifies a `File`, the editor uses `SubmitEvent`, datalist options have text, and the habit editor sets its steps text when it opens instead of syncing it in an effect. Three `react/react-compiler` findings are false positives (every setState sits after an `await`; `outcome` is a local), and `prefer-tag-over-role` on the drawn meters, which animate or change colour; each has a one-line disable with its reason. Adding `npm run lint` to `.github/workflows/check.yml` was pushed back by GitHub: the token here lacks the `workflow` scope, so that one-line change is left for Alon.
+  - **Docs:** `docs/api.md` lists the real endpoints and both kinds of auth. `docs/CLOUDFLARE_DEPLOY.md` describes the deploy as it works now (no `wrangler.jsonc`; the build generates the Worker config). The README no longer mentions Supabase, `.env.example` or the `sites` remote.
+- **Files touched:** the deletions above (commit 552956e, which carried only them), `package.json`, `package-lock.json`, `.oxlintrc.json`, `components/life/{auth-gate,editor,finance,goals,habits,use-life}.tsx`, `README.md`, `docs/api.md`, `docs/CLOUDFLARE_DEPLOY.md`, `docs/IMPLEMENTATION_STATUS.md`, `CHANGELOG.md`.
+- **Validation:** `npm run lint` exits 0; typecheck, 76/76 tests and build pass.
+- **Open items / notes for the next AI:** `today.tsx`, `timeline.tsx`, `tasks.tsx` and `goals.tsx` are also unreachable (they only import each other) but were kept: whether they go is Alon's call. `react-server-dom-webpack` and `@shadcn/react` look unused but were kept, because vinext and the shadcn CLI may load them.
+
 ### 2026-09-25 — Claude (Claude Code) — Backlog pass 1: presses, contrast, and phone layout
 - **Summary:** Alon asked for the Backlog to be validated and worked through. This pass is the interface items:
   - **Presses:** every control now answers one (`scale(.96)`, or a tinted cell for the week dots), and `:hover` rules no longer stick after a tap.

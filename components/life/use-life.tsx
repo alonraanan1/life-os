@@ -7,6 +7,8 @@ type SaveBatch={confirmed:Entry|undefined;error?:Error};
 export function LifeProvider({children}:{children:ReactNode}){const [records,setRecords]=useState<Entry[]>([]),[loading,setLoading]=useState(true),[pendingIds,setPendingIds]=useState<ReadonlySet<string>>(new Set()),[error,setError]=useState('');const requestId=useRef(0),saving=useRef<Set<string>>(new Set()),queues=useRef<Map<string,Promise<void>>>(new Map()),saveSeq=useRef<Map<string,number>>(new Map());
 const batches=useRef(new Map<string,SaveBatch>()),refreshWaiters=useRef<Array<()=>void>>([]);
 const refresh=useCallback(async()=>{if(saving.current.size)return new Promise<void>(resolve=>refreshWaiters.current.push(resolve));const id=++requestId.current;try{const r=await fetch('/api/records',{cache:'no-store'});if(r.status===401){window.dispatchEvent(new Event('life:unauthorized'));return;}const d=await r.json() as {records:Entry[];error:string};if(id!==requestId.current)return;if(!r.ok)throw new Error(d.error);setRecords(d.records);setError('');}catch(e){if(id===requestId.current)setError(e instanceof Error?e.message:'לא ניתן לטעון נתונים');}finally{if(id===requestId.current)setLoading(false);}},[]);
+// refresh() sets state only after its fetch resolves; the rule cannot see past the await.
+// oxlint-disable-next-line react/react-compiler
 useEffect(()=>{void refresh();const focus=()=>{if(document.visibilityState==='visible')void refresh();};document.addEventListener('visibilitychange',focus);window.addEventListener('focus',focus);return()=>{document.removeEventListener('visibilitychange',focus);window.removeEventListener('focus',focus);};},[refresh]);
 // Per-record queue: a tap that lands while a save for the *same* record is
 // still in flight is queued behind it instead of being dropped, so a burst
@@ -31,6 +33,8 @@ const previous=queues.current.get(recordId),run=previous?previous.then(execute):
 queues.current.set(recordId,run);
 await run;
 if(queues.current.get(recordId)===run){queues.current.delete(recordId);batches.current.delete(recordId);saving.current.delete(recordId);setPendingIds(new Set(saving.current));if(!saving.current.size){setLoading(false);const waiters=refreshWaiters.current.splice(0);if(waiters.length)void refresh().finally(()=>waiters.forEach(resolve=>resolve()));}}
+// `outcome` is a local of this callback, not a dependency.
+// oxlint-disable-next-line react/react-compiler
 if(outcome instanceof Error)throw outcome;
 return outcome;},[refresh]);
 return <Context.Provider value={{records,loading,busy:pendingIds.size>0,pending:id=>pendingIds.has(id),error,clearError:()=>setError(''),refresh,save}}>{children}</Context.Provider>;}

@@ -3,6 +3,7 @@
 The user changed direction on 2026-09-15: Life OS is now a habit tracker with one secondary Finance page. This supersedes the previous eight-area dashboard scope.
 
 ## Active scope
+- 2026-09-25: sleep is hidden from Habits at Alon's request (code kept; restore steps in `CHANGELOG.md`), and Finance tracks the open debt to dad with payments. The CHANGELOG is the current record; this file is the 2026-09-15 refocus.
 - Habits: default screen, scheduled daily completion, dated history, streaks, creation/editing and soft deletion. Includes the existing sleep tracker as a dedicated habit, retaining hours, sleep rating, chart and history.
 - Finance: existing complete page, including father's-card expenses and intake integrations.
 - Settings: secondary profile, complete backup/import, trash recovery and Google logout.

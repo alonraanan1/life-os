@@ -27,7 +27,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   const [stepsText,setStepsText]=useState('');
   const [cheer,setCheer]=useState(0);
   const [medal,setMedal]=useState('');
-  useEffect(()=>{if(editing!==undefined)setStepsText(editing?.data.steps?.join(', ')||'');},[editing]);
+  const edit=(h:Entry<'habit'>|null)=>{setEditing(h);setStepsText(h?.data.steps?.join(', ')||'');};
   const stepNames=stepsText.split(',').map(s=>s.trim()).filter(Boolean);
   const stepsLocked=stepNames.length>=2;
   const habits=select(records,'habit');
@@ -119,7 +119,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         <h2>{compact?'הרגלים של היום':'ההרגלים שלי'}</h2>
         <p>{compact?'כל סימון הוא צעד קטן קדימה.':habits.length?habitCountLabel:'התחלה קטנה, שגרה שאפשר לראות.'}</p>
       </div>
-      <button className="quiet-action" onClick={()=>setEditing(null)}><Plus size={17}/>הרגל חדש</button>
+      <button className="quiet-action" onClick={()=>edit(null)}><Plus size={17}/>הרגל חדש</button>
     </header>
 
     {!compact&&<div className="habit-toolbar">
@@ -143,6 +143,8 @@ export function HabitsView({compact=false}:{compact?:boolean}){
         <small aria-live="polite">{dueHabits.length?(completed===dueHabits.length?'יום מושלם':'הושלמו'):habits.length?'יום מנוחה מתוכנן':'עוד לא הוספת הרגלים'}</small>
         <small className="streak-line" aria-live="polite">{medal?<><Medal size={13} aria-hidden="true"/>מדליה חדשה · {medal}</>:perfect.current>=2&&<><Flame size={13} aria-hidden="true"/>{perfect.current} ימים מושלמים ברצף</>}</small>
       </div>
+      {/* A drawn bar, not <progress>: it animates with a transform. */}
+      {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role */}
       <div className="habit-progress" role="progressbar" aria-label="השלמת ההרגלים המתוכננים" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}>
         <span style={{'--pct':completionPercent/100} as CSSProperties}/>
       </div>
@@ -181,7 +183,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
             </div>
             <div className="habit-actions">
               <button aria-label={pillLabel} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void (stepsList?togglePill(h,selected):toggle(h,selected)).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
-              <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>setEditing(h)}><Pencil size={16}/></button>
+              <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>edit(h)}><Pencil size={16}/></button>
             </div>
           </div>
           {stepsList&&<div className="habit-steps" aria-label={'שלבי '+h.data.title}>
@@ -204,7 +206,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       })}
     </div>
 
-    {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>setEditing(null)}/>}
+    {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>edit(null)}/>}
 
     {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>{const stepsRaw=field(form,'steps'),steps=stepsRaw?stepsRaw.split(',').map(s=>s.trim()).filter(Boolean):undefined;return save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:steps?steps.length:Number(field(form,'target'))||1,steps},editing||undefined);}} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});setEditing(undefined);}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>

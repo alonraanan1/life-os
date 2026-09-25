@@ -1,25 +1,34 @@
 # Life OS API
 
-All automation endpoints live under `/api` and return JSON. Keep the Supabase service role key on the server only.
+Every endpoint lives under `/api` and answers JSON. All data sits in one Cloudflare D1 table, `life_records`: one row per record, a JSON `data` column, and a `version` that each write must match (a stale write gets `409`). Record kinds and their validation are in `lib/life-model.ts` (`kinds`, `validate`).
 
-## Create expense
+There are two ways in:
 
-`POST /api/expense`
+- **The app** uses a session cookie from Google sign-in (only `OWNER_EMAIL` gets one) and must be same-origin.
+- **Apple Shortcuts** send `Authorization: Bearer <APPLE_SHORTCUTS_API_KEY>` (or the same value in `X-Life-OS-Key`), checked by `authorized()` in `lib/shortcuts.ts`. Field-by-field setup is in `docs/SHORTCUTS.md`.
 
-```json
-{
-  "amount": 45,
-  "category": "Food",
-  "description": "Lunch",
-  "date": "2026-09-11T13:30:00+03:00",
-  "externalId": "shortcut-2026-09-11-1330"
-}
-```
+## App
 
-`externalId` is optional and intended for idempotency when an Apple Shortcut retries. The endpoint validates amount, category, and ISO-8601 date before inserting into Supabase.
+| Endpoint | What it does |
+| --- | --- |
+| `GET /api/health` | Liveness check, no auth. |
+| `GET /api/auth` · `DELETE /api/auth` | Session status · sign out. |
+| `GET /api/auth/google` → `/api/auth/google/callback` | Google sign-in. |
+| `GET /api/records` · `POST /api/records` | Every record · write one record (`{kind, id, version, data, deleted?}`; version `0` creates). |
+| `GET /api/export` · `POST /api/import` | Backup (`format: "life-os"`, `schemaVersion: 1`) · restore, up to 1,000 records per import, existing ids kept. |
 
-## Health
+## Shortcuts (Bearer key)
 
-`GET /api/health`
+| Endpoint | What it does |
+| --- | --- |
+| `POST /api/expense` | A Wallet or bank charge. A positive amount is enough; a charge without merchant or `externalId` stays pending review. |
+| `GET /api/expense/pending` · `POST` | Charges waiting for review, with what each is missing · complete one. |
+| `GET /api/habits/pending` · `POST` | Today's unfinished habits and steps as one list · mark the chosen ones. |
+| `GET /api/habit-mark` · `POST` | Habit titles · add one completion (capped at the target; never clears a finished day). |
+| `POST /api/sleep` | Log a night (score and/or hours). |
+| `POST /api/checkin` | Log a mood check-in. |
+| `POST /api/task` | Add a task. |
+| `GET /api/goal-progress` · `POST` | Goal titles · add progress. |
+| `GET /api/hub` · `POST` | One menu for a single Shortcut (`?plain=1` returns a bare array for Choose from List) · run the chosen item. |
 
-The same module boundary can later add `/api/task`, `/api/habit-entry`, `/api/check-in`, and `/api/goal-progress` without changing the dashboard.
+A rejected key answers `401 {"error":"unauthorized"}`. On `/api/habits/pending` it also logs a value-free `shortcut_auth_rejected` line (header present or not, shapes only) in the Worker.

@@ -9,6 +9,8 @@ export function AuthGate({children}:{children:ReactNode}) {
     catch{setError('לא ניתן להתחבר לשירות כרגע.');setStatus('error');}
   }
   useEffect(()=>{
+    // check() sets state only after its fetch resolves; the rule cannot see past the await.
+    // oxlint-disable-next-line react/react-compiler
     void check(true);
     const expire=()=>{setStatus('login');setError('החיבור הסתיים. יש להתחבר שוב.');};
     window.addEventListener('life:unauthorized',expire);
