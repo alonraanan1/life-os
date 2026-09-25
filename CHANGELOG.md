@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Codex — Shortcut key rotation and old-shortcut cleanup
+- **Summary:** After the owner rotated the existing `APPLE_SHORTCUTS_API_KEY` in Cloudflare, entered the locally supplied new key into both requests of the pending-habits draft, the Wallet draft, and the still-required `LifeOs Sleep` shortcut. Removed `LifeOs Dad` and `LifeOs 1` at the owner's request; `LifeOs Sleep` remains because the habits draft calls it. No key was added to the repository or chat.
+- **Files touched:** `docs/SHORTCUTS.md`, `CHANGELOG.md`; macOS Shortcuts library and owner-operated Cloudflare secret UI (outside git).
+- **Validation:** The Shortcuts editor showed the new 64-character key with `Bearer ` in the relevant request headers. The two removed shortcuts disappeared and Sleep remained. A read-only run of the habits draft produced no visible result; this is not proof of an authenticated API response. No expense was sent, no habit was marked, and no iPhone automation was tested.
+- **Open items / notes for the next AI:** Verify authenticated live GET without exposing the key; check iCloud sync and on-device iPhone Charger/Transaction automations. A clipboard-based shell check could not access the key (empty clipboard in that process), so do not claim server authentication was verified. User-created secret rotation may temporarily break any undiscovered old shortcut still carrying the prior key.
+
 ### 2026-09-25 — Codex — Wallet intake accepts incomplete transaction metadata
 - **Summary:** Removed the merchant/external-ID gate for authenticated Wallet intake while retaining positive-amount validation and review status. Created a macOS Wallet Shortcut draft that sends amount and available merchant, leaving only the private key and iPhone Transaction automation for the owner. Updated the setup guide and confirmed Apple's trigger does not promise every Wallet charge or every field.
 - **Files touched:** `app/api/expense/route.ts`, `tests/shortcuts.test.mjs`, `docs/SHORTCUTS.md`; macOS Shortcuts library (outside git).
