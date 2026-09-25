@@ -19,6 +19,11 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — The hub no longer unmarks a step on a repeated request
+- **Summary:** `/api/hub` marked a named step with `toggleHabitStep`, so a second identical request removed the mark. That happens on a Shortcut retry after a lost response, or when the menu went stale because the step was marked in the app meanwhile. Marking is now idempotent there, as `/api/habit-mark` already promised: an already-marked step answers "כבר סומן" and writes nothing. `/api/habits/pending` was already safe (it only accepts items still pending at request time).
+- **Files touched:** `app/api/hub/route.ts`, `tests/hub-steps.test.mjs` (new; the same stubbed-infrastructure pattern as `tests/shortcuts.test.mjs`, kept separate because that file has Codex's uncommitted edits), `CHANGELOG.md`.
+- **Validation:** 84/84 tests; the new idempotency test fails without the fix. Typecheck and lint pass.
+
 ### 2026-09-25 — Claude (Claude Code) — A removed step no longer counts toward a habit day; spoken habit labels
 - **Summary:**
   - **Bug:** when a stepped habit lost a step after being marked that day (say 4 steps down to 3), the removed step's index stayed in `stepsDone` and still counted. Steps 0, 1 and the deleted 3 made "3 of 3": the day showed done while current step 2 was not. `toggleHabitStep`, `toggleHabitPill`, `advanceHabit` and `settleEntry` now count only indices below the target and drop the rest on the next write, so the screen, the Shortcuts and the server agree. An entry already stored with a stale `done` stays as it is until that day is touched again.

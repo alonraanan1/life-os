@@ -110,6 +110,9 @@ async function markHabitStep(s:State,habit:Entry<'habit'>,index:number){
   const existing=await oneRecord(id);
   const target=habitTarget(habit.data);
   const current=existing&&!existing.deletedAt?entryStepsDone(existing.data as HabitEntryData):[];
+  // Marking is idempotent, as in /api/habit-mark: a retried request or a menu
+  // that went stale must not toggle an already-marked step back off.
+  if(current.includes(index))return 'כבר סומן: '+habit.data.title+': '+habit.data.steps![index];
   const {stepsDone,count,done}=toggleHabitStep(current,index,target);
   const data=validate('habitEntry',{habitId:habit.id,date:s.today,done,count,stepsDone});
   await upsert(database(),id,'habitEntry',data,existing?.version);
