@@ -715,15 +715,18 @@ Core tokens:
 - `--bg` — page background: an Apple-white parchment ground (`#f5f5f7`), not pure white.
 - `--surface` / `--surface-2` / `--surface-solid` — opaque content-panel backgrounds, from card white to a faint tint.
 - `--stroke` / `--stroke-strong` — hairline borders.
-- `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps, on dark ink (`#1d1d1f`).
+- `--text` / `--text-2` / `--text-3` — primary, secondary, and tertiary text opacity steps, on dark ink (`#1d1d1f`): 100%, 70%, 64%. `--text-3` is the floor: 4.76:1 on the lightest grey the app sits on (the gold dad card) and 5.09:1 on white. Don't go lighter for text; `--text-2` stays a step darker than `--text-3`.
 - `--brand` — the single interactive accent, Apple Action Blue (`#0066cc`): links, nav/filter selection, primary buttons, focus rings. `--brand-tint` / `--brand-tint-strong` are its low-opacity fills.
-- `--success` — a narrow, deliberate green (`#1f8a57`) that means "completed" only: the habit mark, the daily progress bar, the weekly history dots, goal-reached confirmations. It is not a general-purpose accent. `--income` maps to `--success` by financial convention.
+- `--success` — a narrow, deliberate green (`#1a7f4f`, 5.0:1 on white, darkened from `#1f8a57` which read 4.35:1) that means "completed" only: the habit mark, the daily progress bar, the weekly history dots, goal-reached confirmations. It is not a general-purpose accent. `--income` maps to `--success` by financial convention.
 - `--gold` — kept in its narrow semantic role: goal amounts, the dad-card, and the icons for streaks (flame) and medals.
 - `--danger` / `--danger-ink` — destructive actions and error states.
+- `--disabled-opacity` (.5) — the one dimming step for every disabled control.
 - `--glass-bg` / `--glass-bg-dense` / `--glass-highlight` / `--glass-shade` / `--glass-blur` / `--glass-saturate` — the Liquid Glass material: translucency, backdrop blur with saturation, and a specular top-edge highlight.
 - `--glass-clear` (30% white, 8px blur) / `--glass-sheet` (55% white, 28px blur) — the sheer glass for the two surfaces that float over moving content: the mobile tab bar and the editor sheet. At `--glass-bg`'s 66% over a white section they read as an opaque white slab, so these let the content show through. Fields inside the sheet are tinted glass too (50% white, no blur of their own).
 - `--shadow-rest` / `--shadow-pill` / `--shadow-float` / `--shadow-modal` — a four-step elevation scale. Every shadow in the app comes from one of these four, not a one-off value.
 - `--glow-a` (brand blue) / `--glow-b` (gold) — two ambient washes at roughly 4-5% opacity, fixed behind the page. Glass is invisible on a flat white ground, so the material needs faint color behind it to refract. They are not decoration.
+
+Every control answers a press, since the tap highlight is off everywhere: a `scale(.96)` from the moment the finger lands (120ms, the habit-pill curve); the week dots tint their 44px cell instead, and record rows dim. `:hover` rules sit inside `@media (hover:hover)` so they never stick after a tap on a phone.
 
 The mobile tab bar is a detached glass capsule. It floats 12px above the bottom edge, is inset 16px from each side, and is capped at 400px wide, centred with logical insets. The active tab uses the same `--brand-tint` capsule as the sidebar's active item. In every glass rule, write `-webkit-backdrop-filter` before `backdrop-filter`: the minifier keeps only the last declaration of the pair, and Chromium needs the unprefixed one.
 

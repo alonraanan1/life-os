@@ -19,6 +19,18 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Backlog pass 1: presses, contrast, and phone layout
+- **Summary:** Alon asked for the Backlog to be validated and worked through. This pass is the interface items:
+  - **Presses:** every control now answers one (`scale(.96)`, or a tinted cell for the week dots), and `:hover` rules no longer stick after a tap.
+  - **Contrast:** `--text-3` 64% (was 58%, 4.18:1), `--text-2` 70%, `--success` `#1a7f4f` (was 4.35:1), the "not scheduled" dot 3.2:1 (was 1.38:1), and one `--disabled-opacity` in place of five raw values.
+  - **Phone layout:** "חזרה להיום" joins the date row instead of pushing the list down (it still wraps under 360px). The date chevrons line up with the content edge. The three finance figures become label/amount lines under 480px; the card used to clip the third one. Module headers wrap rather than overflow.
+  - **Restraint:** finance no longer repeats "הכספים שלי" (the month picker takes the header), the "אבא" legend shows only when the month has dad spending, the radial glow is gone from the budget card, and the desktop sidebar lost its tagline and gold slogan. The top ambient wash now sits behind the sidebar in RTL.
+  - **Type:** display sizes have their own leading, the empty-state title no longer outranks its section, and the habits number no longer grows on phones.
+  - **Other:** tab switches jump to the top instead of smooth-scrolling. Dead CSS removed.
+- **Files touched:** `app/globals.css`, `app/page.tsx`, `components/life/finance.tsx`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:** 76/76 tests, typecheck, build. Static preview at 320, 360 and 390px: no horizontal scroll, the date row stays one line from 360px up, no element leaves the viewport on finance. Not checked on an iPhone.
+- **Open items / notes for the next AI:** the triaged list lives in the vault's Backlog & Ideas. Items that need Alon: flat vs carded Finance/Data, a type scale, and whether to delete the unreachable `today`/`timeline`/`tasks`/`goals` components.
+
 ### 2026-09-25 — Claude (Claude Code) — See-through tab bar and editor, and a dad debt with payments
 - **Summary:** Alon's feedback on the phone. The tab bar still looked like an opaque white slab, so it and the editor sheet now use a sheer glass that shows the content behind. The editor could scroll sideways on the phone; it no longer can. The dad card no longer lists the charges. It shows what is owed for the month, the total still open, and a "תשלום לאבא" button that records a payment and takes it off the debt.
 - **Files touched:** `lib/life-model.ts`, `components/life/finance.tsx`, `components/life/data.tsx`, `app/globals.css`, `tsconfig.json`, `tests/model.test.mjs`, `tests/finance.test.mjs`, `DESIGN.md`, `CHANGELOG.md`.

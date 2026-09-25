@@ -28,7 +28,7 @@ function Dashboard(){
     return()=>window.clearInterval(timer);
   },[]);
 
-  const go=(next:View)=>{setView(next);window.scrollTo({top:0,behavior:'smooth'});};
+  const go=(next:View)=>{setView(next);window.scrollTo(0,0);};
 
   useEffect(()=>{
     const context=(document as Document&{modelContext?:{registerTool?:(tool:unknown,options?:{signal?:AbortSignal})=>void|Promise<void>}}).modelContext;
@@ -67,17 +67,13 @@ function Sidebar({view,onNavigate}:{view:View;onNavigate:(next:View)=>void}){
       {[...navItems,dataNav].map(({id,label,icon:Icon})=>
         <button key={id} onClick={()=>onNavigate(id)} aria-current={view===id?'page':undefined} className={`nav-item ${view===id?'active':''}`}><Icon/>{label}</button>)}
     </nav>
-    <div className="mt-auto border-t border-[var(--stroke)] px-3 pt-5">
-      <p className="text-xs font-bold text-[var(--gold)]">קצב אישי</p>
-      <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">סימון קטן היום בונה רצף שאפשר לראות.</p>
-    </div>
   </aside>;
 }
 
 function Brand(){
   return <div className="mb-10 flex items-center gap-3 px-3">
     <div className="grid size-10 place-items-center rounded-xl bg-[var(--brand)] text-lg font-semibold text-[var(--brand-ink)]">L</div>
-    <div><p className="text-lg font-semibold">Life OS</p><p className="text-xs text-[var(--text-2)]">הרגלים בקצב שלך</p></div>
+    <p className="text-lg font-semibold">Life OS</p>
   </div>;
 }
 
@@ -96,7 +92,7 @@ function AppHeader({view,name,dateLabel,greeting,onProfile}:{view:View;name:stri
       <p className="mb-1 text-xs font-semibold text-[var(--text-3)]">{dateLabel||' '}</p>
       <h1 className="page-heading">{heading}</h1>
     </div>
-    <button onClick={onProfile} aria-label="הנתונים והפרופיל שלי" className="grid size-11 place-items-center rounded-full bg-[var(--surface-2)] border border-[var(--stroke)] text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
+    <button onClick={onProfile} aria-label="הנתונים והפרופיל שלי" className="grid size-11 place-items-center rounded-full bg-[var(--surface-2)] border border-[var(--stroke)] text-sm font-semibold transition-transform active:scale-[.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
       {initials||<User size={20} aria-hidden="true"/>}
     </button>
   </header>;
