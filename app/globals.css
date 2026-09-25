@@ -68,6 +68,12 @@
      the material effect comes mostly from blur + saturation, not sheerness. */
   --glass-bg: rgba(255,255,255,.66);
   --glass-bg-dense: rgba(255,255,255,.86);
+  /* The two surfaces that float over moving content — the tab bar and the
+     editor sheet — are sheer on purpose: at 66% over a white section they
+     read as a plain white slab (Alon, 2026-09-25), so they show what is
+     behind them and lean on a lighter blur instead. */
+  --glass-clear: rgba(255,255,255,.3);
+  --glass-sheet: rgba(255,255,255,.55);
   --glass-highlight: rgba(255,255,255,.85);
   --glass-shade: rgba(0,0,0,.05);
   --glass-blur: var(--blur);
@@ -322,7 +328,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .nav-item { color: var(--text-2); border-radius: 12px; font-weight: 600; min-height: 44px; }
 .nav-item.active { background: var(--brand-tint); color: var(--brand); }
 .nav-item svg { stroke-width: 1.8; }
-.mobile-nav { color: var(--text-2); font-size: .75rem; min-width: 0; flex: 1; font-weight: 600; min-height: 50px; gap: 2px; border-radius: 999px; transition: background-color 200ms ease, color 200ms ease; }
+.mobile-nav { color: var(--text); font-size: .75rem; min-width: 0; flex: 1; font-weight: 600; min-height: 50px; gap: 2px; border-radius: 999px; transition: background-color 200ms ease, color 200ms ease; }
 .mobile-nav.active { color: var(--brand); background: var(--brand-tint); }
 .mobile-nav.active span { background: transparent; }
 .mobile-nav span { padding-inline: 8px; }
@@ -375,7 +381,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 /* The editor is the one true modal in the app: it floats over a dimmed scrim
    (base-ui's dialog overlay), so a dense glass reads real content and dimming
    through it without ever risking the form's legibility. */
-.life-editor{background:var(--glass-bg-dense)!important;-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))!important;color:var(--text)!important;width:calc(100% - 32px)!important;max-width:500px!important;max-height:90dvh;overflow-y:auto;padding:28px!important;direction:rtl;border:1px solid var(--stroke-strong)!important;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-modal)!important}
+.life-editor{background:var(--glass-sheet)!important;-webkit-backdrop-filter:blur(28px) saturate(1.8)!important;backdrop-filter:blur(28px) saturate(1.8)!important;color:var(--text)!important;width:calc(100% - 32px)!important;max-width:500px!important;max-height:90dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:28px!important;direction:rtl;border:1px solid var(--stroke-strong)!important;box-shadow:inset 0 1px 0 var(--glass-highlight), var(--shadow-modal)!important}
+.life-editor input,.life-editor select,.life-editor textarea{background:rgba(255,255,255,.5)}
+/* A native date or select control claims its intrinsic width, and a grid
+   track sized auto lets that push the sheet wider than the screen, which on
+   a phone turned into a sideways scroll. Tracks may shrink to the column. */
+.life-form,.life-form label{grid-template-columns:minmax(0,1fr)}
+.life-form input,.life-form select,.life-form textarea{min-width:0}
 .editor-actions{display:flex;gap:12px;align-items:center;margin-top:8px}
 .editor-delete{margin-inline-start:auto}
 .quiet-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 12px;color:var(--brand);border-radius:10px;font-size:14px;font-weight:600}
@@ -396,7 +408,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .record-body small{display:block;color:var(--text-3);margin-top:6px;font-size:13px}
 .record-body .overdue{color:var(--danger)}
 .completed{text-decoration:line-through;color:var(--text-3)}
-.form-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .life-empty{padding:48px 12px;text-align:center}
 .life-empty h3{font-size:19px;font-weight:700}
 .life-empty p{font-size:15px;color:var(--text-2);margin:10px auto;max-width:320px;line-height:1.7}
@@ -514,7 +526,7 @@ i.fund-dad{background:var(--gold-fill)}
    scrolls beneath, centred with logical insets. Blur + saturation carry the
    material; the hairline and the bright top rim keep its edge on the white
    ground. The active tab is the same brand-tint capsule as the sidebar's. */
-.mobile-bar{position:fixed;inset-inline:16px;bottom:max(12px,env(safe-area-inset-bottom));z-index:20;display:flex;gap:4px;max-width:400px;margin-inline:auto;padding:5px;border:1px solid var(--stroke);border-radius:999px;background:var(--glass-bg);box-shadow:inset 0 1px 0 var(--glass-highlight),inset 0 -1px 0 var(--glass-shade),var(--shadow-float);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate))}
+.mobile-bar{position:fixed;inset-inline:16px;bottom:max(12px,env(safe-area-inset-bottom));z-index:20;display:flex;gap:4px;max-width:400px;margin-inline:auto;padding:5px;border:1px solid var(--stroke);border-radius:999px;background:var(--glass-clear);box-shadow:inset 0 1px 0 var(--glass-highlight),inset 0 -1px 0 var(--glass-shade),var(--shadow-float);-webkit-backdrop-filter:blur(8px) saturate(1.8);backdrop-filter:blur(8px) saturate(1.8)}
 @media(min-width:1024px){.mobile-bar{display:none}}
 .app-status{display:block;padding:56px 4px;color:var(--text-2);font-size:15px}
 .app-error{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;padding:14px 18px;border:1px solid var(--danger-tint);background:var(--danger-tint);border-radius:14px;color:var(--danger);font-size:14px}
@@ -621,12 +633,14 @@ i.fund-dad{background:var(--gold-fill)}
 .chart-hits{position:absolute;inset:0;display:flex}
 .chart-hits button{flex:0 0 auto;background:none;border:0;padding:0;height:100%;cursor:pointer}
 .chart-hits button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:6px}
-.dad-card{margin-top:16px;padding:18px;border:1px solid var(--gold-tint);background:var(--gold-tint);border-radius:18px}
+.dad-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:12px;margin-top:16px;padding:18px;border:1px solid var(--gold-tint);background:var(--gold-tint);border-radius:18px}
+.dad-card>.quiet-action{margin:-8px -8px 0 0}
 .dad-head small{display:block;font-size:12.5px;color:var(--text-2);font-weight:600}
 .dad-head strong{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;color:var(--gold);font-variant-numeric:tabular-nums}
-.dad-head span{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
+.dad-open{grid-column:1/-1;font-size:14px;color:var(--text-2);margin-top:6px}
+.dad-open bdi{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
 .dad-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:10px 0;border-top:1px solid var(--stroke);font-size:14px;transition:opacity 120ms ease}
-.dad-row:first-of-type{margin-top:12px}
+.dad-card>.dad-row{grid-column:1/-1;margin-top:12px}
 .dad-row span:first-child{color:var(--text-3);font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
 .dad-row span+span{flex:1;min-width:0;overflow-wrap:anywhere}
 .dad-row bdi{font-weight:700;white-space:nowrap}
@@ -638,7 +652,7 @@ i.fund-dad{background:var(--gold-fill)}
 /* Narrow phones: side-by-side pairs stop fitting once the native controls
    claim their intrinsic width, so they stack instead of overlapping. */
 @media(max-width:520px){
- .form-columns{grid-template-columns:1fr;gap:16px}
+ .form-columns{grid-template-columns:minmax(0,1fr);gap:16px}
  .life-editor{padding:22px!important}
  .module-header{align-items:flex-start;gap:10px}
  .module-header h2{font-size:18px}

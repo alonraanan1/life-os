@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -115,4 +115,17 @@ test('a signed amount lets Intl keep the sign beside the digits in RTL',()=>{
   assert.match(money(5000,true),/\u200e\+/);
   assert.match(money(-5000,true),/\u200e-/);
   assert.doesNotMatch(money(5000),/\+/);
+});
+test('a payment to dad settles the oldest charges first and never counts as spending',()=>{
+  const dad=(date,amount)=>({title:'x',category:'אחר',date,amount,direction:'expense',funder:'dad'});
+  const charges=[dad('2026-07-10',4000),dad('2026-09-02',1500),dad('2026-09-22',1000),{...dad('2026-09-05',900),funder:'me'},{...dad('2026-09-06',700),direction:'income'}];
+  assert.deepEqual(dadDebt(charges,[],'2026-09'),{open:6500,month:2500});
+  assert.deepEqual(dadDebt(charges,[{date:'2026-09-01',amount:2000}],'2026-09'),{open:4500,month:2500});
+  // Once July is paid off, the rest of the payment comes out of September.
+  assert.deepEqual(dadDebt(charges,[{date:'2026-09-25',amount:5000}],'2026-09'),{open:1500,month:1500});
+  assert.deepEqual(dadDebt(charges,[{date:'2026-09-25',amount:5000}],'2026-07'),{open:1500,month:0});
+  assert.deepEqual(dadDebt(charges,[{date:'2026-09-25',amount:9000}],'2026-09'),{open:0,month:0});
+  assert.deepEqual(validate('dadPayment',{date:'2026-09-25',amount:5000,extra:1}),{date:'2026-09-25',amount:5000});
+  assert.throws(()=>validate('dadPayment',{date:'2026-09-25',amount:0}));
+  assert.throws(()=>validate('dadPayment',{date:'2026-09-25',amount:12.5}));
 });

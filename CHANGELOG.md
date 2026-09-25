@@ -19,6 +19,17 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — See-through tab bar and editor, and a dad debt with payments
+- **Summary:** Alon's feedback on the phone. The tab bar still looked like an opaque white slab, so it and the editor sheet now use a sheer glass that shows the content behind. The editor could scroll sideways on the phone; it no longer can. The dad card no longer lists the charges. It shows what is owed for the month, the total still open, and a "תשלום לאבא" button that records a payment and takes it off the debt.
+- **Files touched:** `lib/life-model.ts`, `components/life/finance.tsx`, `components/life/data.tsx`, `app/globals.css`, `tsconfig.json`, `tests/model.test.mjs`, `tests/finance.test.mjs`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:** 76/76 tests, typecheck and build pass; oxlint shows only the pre-existing findings. In a static preview at 320 and 390px the editor's scroll width equals its width and the page has no horizontal scroll. Not checked on an iPhone.
+- **Open items / notes for the next AI:**
+  - **New record kind `dadPayment` `{date, amount}`.** It is not a transaction on purpose: dad-funded charges already count in the budget, so a repayment as an expense would count the same money twice.
+  - **`dadDebt()` settles the oldest charges first.** "This month" is the part of the open balance that later months have not taken, so paying everything brings both numbers to 0. An overpayment shows 0 and quietly absorbs later charges.
+  - The card shows only the last payment, as a row that opens its editor (edit or delete). Deleted payments go to the trash on the data page like any record.
+  - **Sideways scroll:** a native date/select control claimed its intrinsic width inside an `auto` grid track. The form grids are now `minmax(0,1fr)`, the controls have `min-width:0`, and the sheet has `overflow-x:hidden`. iOS Safari could not be reproduced here.
+  - `tsconfig.json` now excludes `work/`, the ignored folder for Codex's agent worktrees. Their stale copies were type-checked against this checkout's `lib/` and broke on any new record kind.
+
 ### 2026-09-25 — Claude (Claude Code) — Floating glass tab bar, a shorter finance list, sleep hidden, and gamification
 - **Summary:** The owner asked for a more premium feel. Four changes:
   - **Tab bar:** the mobile tab bar is now a floating liquid-glass capsule instead of a full-width white strip.

@@ -721,6 +721,7 @@ Core tokens:
 - `--gold` — kept in its narrow semantic role: goal amounts, the dad-card, and the icons for streaks (flame) and medals.
 - `--danger` / `--danger-ink` — destructive actions and error states.
 - `--glass-bg` / `--glass-bg-dense` / `--glass-highlight` / `--glass-shade` / `--glass-blur` / `--glass-saturate` — the Liquid Glass material: translucency, backdrop blur with saturation, and a specular top-edge highlight.
+- `--glass-clear` (30% white, 8px blur) / `--glass-sheet` (55% white, 28px blur) — the sheer glass for the two surfaces that float over moving content: the mobile tab bar and the editor sheet. At `--glass-bg`'s 66% over a white section they read as an opaque white slab, so these let the content show through. Fields inside the sheet are tinted glass too (50% white, no blur of their own).
 - `--shadow-rest` / `--shadow-pill` / `--shadow-float` / `--shadow-modal` — a four-step elevation scale. Every shadow in the app comes from one of these four, not a one-off value.
 - `--glow-a` (brand blue) / `--glow-b` (gold) — two ambient washes at roughly 4-5% opacity, fixed behind the page. Glass is invisible on a flat white ground, so the material needs faint color behind it to refract. They are not decoration.
 

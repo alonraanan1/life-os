@@ -3,14 +3,15 @@ export type HabitData={title:string;emoji:string;days:number[];startDate:string;
 export type HabitEntryData={habitId:string;date:string;done:boolean;count?:number;stepsDone?:number[]};
 export type TransactionData={title:string;category:string;date:string;amount:number;direction:'expense'|'income';funder?:'me'|'dad';location?:string;reviewStatus?:'pending'|'complete';source?:'wallet'|'bank'};
 export type BudgetData={month:string;amount:number};
+export type DadPaymentData={date:string;amount:number};
 export type GoalData={title:string;target:number;current:number;unit:string;date:string};
 export type CheckinData={date:string;mood:number;note:string};
 export type SleepData={date:string;score:number;hours:number;note:string};
 export type SettingsData={name:string};
-export type DataMap={task:TaskData;habit:HabitData;habitEntry:HabitEntryData;transaction:TransactionData;budget:BudgetData;goal:GoalData;checkin:CheckinData;sleep:SleepData;settings:SettingsData};
+export type DataMap={task:TaskData;habit:HabitData;habitEntry:HabitEntryData;transaction:TransactionData;budget:BudgetData;goal:GoalData;checkin:CheckinData;sleep:SleepData;settings:SettingsData;dadPayment:DadPaymentData};
 export type Kind=keyof DataMap;
 export type Entry<K extends Kind=Kind>={id:string;kind:K;data:DataMap[K];version:number;createdAt:string;updatedAt:string;deletedAt:string|null};
-export const kinds:Kind[]=['task','habit','habitEntry','transaction','budget','goal','checkin','sleep','settings'];
+export const kinds:Kind[]=['task','habit','habitEntry','transaction','budget','goal','checkin','sleep','settings','dadPayment'];
 // Legacy marker, not a category: older rows filed dad-funded charges under this
 // bucket instead of a real category and a funder field. Still written by the
 // Wallet Transaction automation through /api/hub, and still read here for
@@ -96,6 +97,13 @@ export function perfectStreaks(habits:Entry<'habit'>[],entries:Entry<'habitEntry
 }
 // Days in a row, ending today, on which this month's spending so far stayed
 // within the pro-rata budget: the same rule as the budget meter, so they agree.
+// Payments settle the oldest charges first, so what is still owed for a month
+// is the part of the open balance that later months have not already taken.
+export function dadDebt(transactions:TransactionData[],payments:DadPaymentData[],month:string){
+  const charges=transactions.filter(t=>t.direction==='expense'&&effectiveFunder(t)==='dad'),sum=(list:{amount:number}[])=>list.reduce((n,x)=>n+x.amount,0);
+  const open=Math.max(0,sum(charges)-sum(payments)),later=sum(charges.filter(t=>t.date.slice(0,7)>month));
+  return {open,month:Math.min(sum(charges.filter(t=>t.date.startsWith(month))),Math.max(0,open-later))};
+}
 export function budgetStreak(transactions:TransactionData[],budget:number,today:string){
   const month=today.slice(0,7),day=Number(today.slice(8)),days=new Date(Date.UTC(Number(today.slice(0,4)),Number(today.slice(5,7)),0)).getUTCDate(),spent=Array(day+1).fill(0);
   for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)&&t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;
@@ -138,5 +146,6 @@ case 'goal':result={title:text(d.title),target:number(d.target,0.01),current:num
 case 'checkin':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לתעד צ׳ק־אין בעתיד');const mood=number(d.mood,1,5);if(!Number.isInteger(mood))throw new Error('דירוג לא תקין');result={date:day,mood,note:text(d.note,3000,false)};break;}
 case 'sleep':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לתעד שינה בעתיד');const score=number(d.score,0,100);const hours=number(d.hours,0,24);if(!score&&!hours)throw new Error('צריך ציון שינה או מספר שעות');result={date:day,score,hours,note:text(d.note,3000,false)};break;}
 case 'settings':result={name:text(d.name,60)};break;
+case 'dadPayment':{if(cents(d.amount)<=0)throw new Error('הסכום חייב להיות חיובי');result={date:date(d.date),amount:cents(d.amount)};break;}
 default:throw new Error('סוג רשומה לא תקין');}return result as DataMap[K];}
 export function recordId(kind:Kind,data:DataMap[Kind],id:string){if(!/^[a-zA-Z0-9:_-]{1,140}$/.test(id))throw new Error('מזהה לא תקין');if(kind==='budget'&&id!=='budget:'+(data as BudgetData).month)throw new Error('מזהה תקציב לא תקין');if(kind==='habitEntry'&&id!=='entry:'+(data as HabitEntryData).habitId+':'+(data as HabitEntryData).date)throw new Error('מזהה הרגל לא תקין');if(kind==='checkin'&&id!=='checkin:'+(data as CheckinData).date)throw new Error('מזהה צ׳ק־אין לא תקין');if(kind==='sleep'&&id!=='sleep:'+(data as SleepData).date)throw new Error('מזהה שינה לא תקין');if(kind==='settings'&&id!=='settings')throw new Error('מזהה הגדרות לא תקין');return id;}

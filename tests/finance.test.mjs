@@ -79,3 +79,17 @@ test('a row opens the editor, whose delete soft-deletes the latest copy of that 
   assert.equal(existing.version,2);
   assert.equal(remove,true);
 });
+
+test('the dad card shows this month and the open balance, not the charges, and pays through its own editor',async t=>{
+  const dad={...expense(2),id:'d2',data:{...expense(2).data,title:'ביטוח',funder:'dad'}};
+  const paid={id:'p1',kind:'dadPayment',data:{date:month+'-01',amount:500},version:1,createdAt:month+'-01',updatedAt:month+'-01',deletedAt:null};
+  await mount(t,[expense(1),dad,paid]);
+  const card=document.querySelector('.dad-card');
+  assert.doesNotMatch(card.textContent,/ביטוח/);
+  assert.match(card.querySelector('.dad-head strong').textContent,/15\.00/);
+  assert.match(card.querySelector('.dad-open').textContent,/15\.00/);
+  assert.equal(card.querySelectorAll('.dad-row').length,1);
+  await act(async()=>card.querySelector('.quiet-action').click());
+  assert.equal(globalThis.__financeEditor.title,'תשלום לאבא');
+  assert.equal(globalThis.__financeEditor.onDelete,undefined);
+});
