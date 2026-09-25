@@ -28,7 +28,7 @@ async function compile(path,imports){
   return moduleUrl(code);
 }
 const shortcuts=await compile('lib/shortcuts.ts',{'./auth':infrastructure,'./life-store':infrastructure});
-const {upsert}=await import(shortcuts);
+const {authorized,upsert}=await import(shortcuts);
 const {database}=await import(infrastructure);
 const routes={};
 for(const name of ['habit-mark','hub','checkin','sleep','goal-progress','task','expense','expense/pending','habits/pending']){
@@ -45,6 +45,23 @@ const post=(name,body,query='')=>routes[name].POST(new Request('https://life.tes
 const get=name=>routes[name].GET(new Request('https://life.test/api/'+name,{headers:{Authorization:'Bearer test-token'}}));
 const written=()=>JSON.parse(state.writes.at(-1).args[state.writes.at(-1).sql.startsWith('UPDATE')?0:2]);
 test.beforeEach(()=>{state.records=[habit];state.changes=1;state.writes=[];state.authorized=true;});
+
+test('rejected habit auth logs only safe shape diagnostics',async()=>{
+  const messages=[];
+  const warn=console.warn;
+  console.warn=message=>messages.push(message);
+  try{
+    state.authorized=false;
+    assert.equal(await authorized(new Request('https://life.test/api/habits/pending',{
+      headers:{Authorization:'Bearer test-token','cf-ray':'test-ray'},
+    })),false);
+  }finally{console.warn=warn;}
+  assert.deepEqual(JSON.parse(messages[0]),{
+    event:'shortcut_auth_rejected',requestId:'test-ray',headerPresent:true,
+    headerShape:false,secretPresent:true,secretShape:false,
+  });
+  assert.equal(messages[0].includes('test-token'),false);
+});
 
 test('charging choices list each unmarked vitamin separately and include missing sleep',async()=>{
   state.records=[{...habit,data:{...habit.data,title:'ויטמינים',steps:['מגנזיום','אבץ','תוסף']}},entry({count:1,done:false,stepsDone:[1]})];

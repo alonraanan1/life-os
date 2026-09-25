@@ -19,6 +19,12 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Codex — Safe diagnostics for rejected habit Shortcut requests
+- **Summary:** The iPhone pending-habits Shortcut still returned `unauthorized` after the owner redeployed the Production `APPLE_SHORTCUTS_API_KEY`. Added a narrow structured warning on rejected pending-habits requests that records only whether the supplied header and configured secret exist and match the expected format; it never logs either value.
+- **Files touched:** `lib/shortcuts.ts`, `tests/shortcuts.test.mjs`, `CHANGELOG.md`.
+- **Validation:** 70/70 tests, typecheck, production build, focused lint, and diff whitespace check passed. Cloudflare showed the owner's new secret deployment active and recent pending-habits requests returning 401; its invocation logs did not establish whether Authorization was received.
+- **Open items / notes for the next AI:** After deploying, ask Alon to run the iPhone shortcut once and inspect `shortcut_auth_rejected` in Worker logs. Remove or retain this value-free diagnostic after identifying whether the header is missing/malformed or the runtime secret is missing/malformed; do not infer an iPhone sync problem yet. No credential was stored in git or logs.
+
 ### 2026-09-25 — Codex — Shortcut key rotation and old-shortcut cleanup
 - **Summary:** After the owner rotated the existing `APPLE_SHORTCUTS_API_KEY` in Cloudflare, entered the locally supplied new key into both requests of the pending-habits draft, the Wallet draft, and the still-required `LifeOs Sleep` shortcut. Removed `LifeOs Dad` and `LifeOs 1` at the owner's request; `LifeOs Sleep` remains because the habits draft calls it. No key was added to the repository or chat.
 - **Files touched:** `docs/SHORTCUTS.md`, `CHANGELOG.md`; macOS Shortcuts library and owner-operated Cloudflare secret UI (outside git).

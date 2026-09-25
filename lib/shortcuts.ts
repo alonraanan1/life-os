@@ -4,8 +4,17 @@ import type {Entry} from './life-model';
 
 export async function authorized(request:Request):Promise<boolean>{
   const token=secret('APPLE_SHORTCUTS_API_KEY');
-  if(!token)return false;
-  return equal(request.headers.get('Authorization')||'','Bearer '+token);
+  const supplied=request.headers.get('Authorization')||'';
+  const allowed=!!token&&await equal(supplied,'Bearer '+token);
+  if(!allowed&&new URL(request.url).pathname==='/api/habits/pending')console.warn(JSON.stringify({
+    event:'shortcut_auth_rejected',
+    requestId:request.headers.get('cf-ray'),
+    headerPresent:!!supplied,
+    headerShape:/^Bearer [0-9a-f]{64}$/i.test(supplied),
+    secretPresent:!!token,
+    secretShape:/^[0-9a-f]{64}$/i.test(token),
+  }));
+  return allowed;
 }
 
 // Accepts both a JSON object and a form-encoded body. Shortcuts sends the
