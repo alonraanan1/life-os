@@ -7,7 +7,6 @@ import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
 import {Editor,Empty,Field,field} from './editor';
 import {SleepView} from './sleep';
-import {HabitTrends} from './habit-trends';
 
 const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 type HabitFilter='scheduled'|'all';
@@ -201,6 +200,6 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       <fieldset className="day-picker"><legend>באילו ימים?</legend>{days.map((day,index)=><label key={index}><input type="checkbox" name="days" value={index} defaultChecked={editing?editing.data.days.includes(index):true}/><span>{day}</span></label>)}</fieldset>
     </Editor>}
   </section>
-  {!compact&&<><HabitTrends habits={habits} entries={entries} today={today}/><SleepView title="הרגל השינה"/></>}
+  {!compact&&<SleepView title="הרגל השינה"/>}
   </>;
 }

@@ -567,9 +567,20 @@ i.fund-dad{background:var(--gold-fill)}
 .google-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:30px;padding:12px 20px;background:var(--surface-2);border:1px solid var(--stroke);border-radius:14px;font-size:16px;font-weight:600;color:var(--text);text-decoration:none;transition:border-color 150ms,background 150ms}
 .google-action:hover{background:var(--surface);border-color:var(--stroke-strong)}
 .google-action:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-.sleep-record{padding-bottom:14px}
-.sleep-record:last-child{padding-bottom:0}
-.sleep-record .record-row{border:0;padding-block:8px}
+/* A night is one tappable row: label and hours at the start, the score at
+   the end. No divider between nights, as before; the press dims the whole row
+   because .app-main>section .record-row pins the text to the edge, leaving no
+   room for a background fill. */
+.sleep-row{width:100%;text-align:start;border-top:0;padding-block:8px;border-radius:12px;transition:opacity 120ms ease}
+.sleep-row:active{opacity:.6}
+.sleep-row:focus-visible{outline-offset:-2px}
+.sleep-row .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.sleep-score{flex:none;font-size:17px;font-weight:600;color:var(--text)}
+.sleep-history>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-inline-start:-12px}
+.sleep-history>summary::-webkit-details-marker{display:none}
+.sleep-history>summary:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.sleep-history>summary svg{transition:transform 180ms ease}
+.sleep-history[open]>summary svg{transform:rotate(180deg)}
 .activity-icon.sleep{background:var(--surface-2);color:var(--text-2)}
 .feed-value.sleep{color:var(--text-2)}
 @media(min-width:640px){.today-summary{grid-template-columns:repeat(5,minmax(0,1fr))}}
@@ -710,40 +721,4 @@ i.fund-dad{background:var(--gold-fill)}
  .habit-record .record-body small{line-height:1.45}
  .habit-actions{margin-inline-start:auto;align-self:flex-start}
  .habit-mark{margin-top:4px}
-}
-
-/* Habit trends: one row per habit, each a 14-cell strip (oldest to newest,
-   reading start-to-end like the rest of the app) plus a truthful
-   completed/scheduled ratio. Marks reuse the shape language .habit-history
-   already established - filled = done, ringed dot = partial, hollow ring =
-   scheduled but missed, small dot = not scheduled or not yet due - so status
-   is never read from colour alone. */
-.habit-trends{margin-top:32px}
-.habit-trends-header h3{font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
-.habit-trends-header p{font-size:13px;color:var(--text-3);margin-top:2px}
-.habit-trends-summary{margin-top:14px}
-.habit-trend-legend{list-style:none;display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 6px;padding:0;font-size:12px;color:var(--text-2)}
-.habit-trend-legend li{display:flex;align-items:center;gap:6px}
-.habit-trend-legend .mark{position:relative;display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid var(--text-3)}
-.habit-trend-legend .mark.done{background:var(--success);border-color:var(--success)}
-.habit-trend-legend .mark.partial{border-color:var(--success)}
-.habit-trend-legend .mark.partial::after{content:'';position:absolute;inset:28%;border-radius:50%;background:var(--success)}
-.habit-trend-legend .mark.muted{border:0;background:var(--stroke-strong);width:5px;height:5px;margin:3px}
-.habit-trend-list{list-style:none;margin:6px 0 0;padding:0}
-.habit-trend-row{display:grid;grid-template-columns:130px 1fr 44px;align-items:center;gap:12px;padding-block:10px}
-.habit-trend-row+.habit-trend-row{border-top:1px solid var(--stroke)}
-.habit-trend-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px;font-weight:600;color:var(--text)}
-.habit-trend-title span:last-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.habit-trend-strip{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px;margin:0}
-.trend-day{position:relative;width:70%;aspect-ratio:1;margin:auto;border-radius:50%;border:1.5px solid var(--text-3);background:transparent}
-.trend-day.done{background:var(--success);border-color:var(--success)}
-.trend-day.partial{border-color:var(--success)}
-.trend-day.partial::after{content:'';position:absolute;inset:26%;border-radius:50%;background:var(--success)}
-.trend-day.muted{width:5px;height:5px;aspect-ratio:auto;border:0;background:var(--stroke-strong)}
-.habit-trend-ratio{font-size:12px;color:var(--text-2);text-align:end;font-variant-numeric:tabular-nums}
-@media(max-width:480px){
- .habit-trend-row{grid-template-columns:1fr 44px;grid-template-areas:"title ratio" "strip strip";row-gap:8px}
- .habit-trend-title{grid-area:title}
- .habit-trend-ratio{grid-area:ratio}
- .habit-trend-strip{grid-area:strip}
 }

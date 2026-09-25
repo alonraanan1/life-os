@@ -19,6 +19,18 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-25 — Claude (Claude Code) — Habit trends card removed; the sleep list shows one night
+- **Summary:** The owner said the two sections under the habits list "look terrible and flood the user with information." At his choice, the 14-day "מגמת ההרגלים" card is deleted outright: it repeated the weekly dots every habit row already shows, and its circles scaled with the column width (about 36px on desktop), because it was never checked on screen. The sleep section keeps its chart. Below it, only the newest night shows, and the rest sit behind a native `<details>` "כל הלילות". Each night is one tappable row with its label, hours and note, and the score as a plain number. There is no ring, pencil or trash; delete moved into the editor, as it did for habits on 2026-09-18.
+- **Files touched:** `components/life/sleep.tsx`, `components/life/habits.tsx`, `app/globals.css`, `tests/habits.test.mjs`, `tests/sleep.test.mjs` (new), `CHANGELOG.md`; deleted `components/life/habit-trends.tsx`, `tests/habit-trends.test.mjs`.
+- **Validation:** 67/67 tests (8 trends tests deleted, 4 sleep tests added), typecheck, production build, and oxlint clean on `sleep.tsx`. The pre-existing oxlint findings in `habits.tsx` (lines 29 and 131) are untouched. The real components were server-rendered with the built CSS inside the real `.app-shell > main.app-main` chain and checked at 1280px and 390px. Rows are 76px, the summary 44px, label and summary text sit on the section gutter, the score is at inline-end, and there is no horizontal scroll. Hiding the `<details>` marker on Safari was not verified; the preview is Chromium.
+- **Open items / notes for the next AI:**
+  - **Do not bring back the trends card or row delete icons without asking Alon.** Both were removed at his explicit choice.
+  - **Delete re-reads the record.** It uses the latest copy from `records` (not the one captured when the editor opened), so a Shortcut writing that night meanwhile does not cause a 409.
+  - **`busy` is not used to disable rows.** It is global, and rows would flicker on every habit tap.
+  - **`.ring` stays** in `app/globals.css` because `goals.tsx` still uses it.
+  - **The compact view gains delete.** It was deliberately edit-only before; delete now reaches it through the editor, matching habits. Today (`today.tsx`) is not mounted, so nobody sees this.
+  - **Each row has a short spoken name** ("עריכת <night>: <hours>, ציון N"), so a long note is not read out on every focus.
+
 ### 2026-09-25 — Codex — Safe diagnostics for rejected habit Shortcut requests
 - **Summary:** The iPhone pending-habits Shortcut still returned `unauthorized` after the owner redeployed the Production `APPLE_SHORTCUTS_API_KEY`. Added a narrow structured warning on rejected pending-habits requests that records only whether the supplied header and configured secret exist and match the expected format; it never logs either value.
 - **Files touched:** `lib/shortcuts.ts`, `tests/shortcuts.test.mjs`, `CHANGELOG.md`.

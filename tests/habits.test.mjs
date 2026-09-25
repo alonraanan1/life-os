@@ -11,14 +11,14 @@ const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toStr
 const storeURL=moduleURL(`export const store={records:[],writes:[],save:async(...args)=>store.writes.push(args)};
 export const useLife=()=>store;
 export const select=(records,kind)=>records.filter(r=>r.kind===kind&&!r.deletedAt);`);
-const stubsURL=moduleURL('export const tap=()=>{},Editor=()=>null,Empty=()=>null,Field=()=>null,SleepView=()=>null,HabitTrends=()=>null,field="";');
+const stubsURL=moduleURL('export const tap=()=>{},Editor=()=>null,Empty=()=>null,Field=()=>null,SleepView=()=>null,field="";');
 const source=await readFile(new URL('../components/life/habits.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{
   jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,
 }}).outputText.replace(/from ["']([^"']+)["']/g,(_,specifier)=>{
   const resolved=specifier==='@/lib/life-model'?new URL('../lib/life-model.ts',import.meta.url).href
     :specifier==='./use-life'?storeURL
-    :['@/lib/haptics','./editor','./sleep','./habit-trends'].includes(specifier)?stubsURL
+    :['@/lib/haptics','./editor','./sleep'].includes(specifier)?stubsURL
     :import.meta.resolve(specifier);
   return 'from '+JSON.stringify(resolved);
 });
