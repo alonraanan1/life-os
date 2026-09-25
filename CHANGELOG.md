@@ -47,7 +47,7 @@ Template for a new entry:
   - **Docs:** `docs/api.md` lists the real endpoints and both kinds of auth. `docs/CLOUDFLARE_DEPLOY.md` describes the deploy as it works now (no `wrangler.jsonc`; the build generates the Worker config). The README no longer mentions Supabase, `.env.example` or the `sites` remote.
 - **Files touched:** the deletions above (commit 552956e, which carried only them), `package.json`, `package-lock.json`, `.oxlintrc.json`, `components/life/{auth-gate,editor,finance,goals,habits,use-life}.tsx`, `README.md`, `docs/api.md`, `docs/CLOUDFLARE_DEPLOY.md`, `docs/IMPLEMENTATION_STATUS.md`, `CHANGELOG.md`.
 - **Validation:** `npm run lint` exits 0; typecheck, 76/76 tests and build pass.
-- **Open items / notes for the next AI:** `today.tsx`, `timeline.tsx`, `tasks.tsx` and `goals.tsx` are also unreachable (they only import each other) but were kept: whether they go is Alon's call. `react-server-dom-webpack` and `@shadcn/react` look unused but were kept, because vinext and the shadcn CLI may load them.
+- **Open items / notes for the next AI:** `today.tsx`, `timeline.tsx`, `tasks.tsx` and `goals.tsx` are also unreachable (they only import each other) but were kept: whether they go is Alon's call. `react-server-dom-webpack` looks unused but is kept, because vinext may load it. `@shadcn/react` was removed later the same day: only the deleted `message-scroller.tsx` imported it.
 
 ### 2026-09-25 — Claude (Claude Code) — Backlog pass 1: presses, contrast, and phone layout
 - **Summary:** Alon asked for the Backlog to be validated and worked through. This pass is the interface items:
