@@ -5,7 +5,7 @@ Every endpoint lives under `/api` and answers JSON. All data sits in one Cloudfl
 There are two ways in:
 
 - **The app** uses a session cookie from Google sign-in (only `OWNER_EMAIL` gets one) and must be same-origin.
-- **Apple Shortcuts** send `Authorization: Bearer <APPLE_SHORTCUTS_API_KEY>` (or the same value in `X-Life-OS-Key`), checked by `authorized()` in `lib/shortcuts.ts`. Field-by-field setup is in `docs/SHORTCUTS.md`.
+- **Apple Shortcuts** send `Authorization: Bearer <APPLE_SHORTCUTS_API_KEY>`, checked by `authorized()` in `lib/shortcuts.ts`. Field-by-field setup is in `docs/SHORTCUTS.md`.
 
 ## App
 
