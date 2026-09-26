@@ -19,6 +19,20 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — Life OS as a Home Screen app
+- **Summary:**
+  - **What was missing.** The site had no icon (`/favicon.ico` and `/apple-touch-icon.png` returned 404) and no manifest, so "Add to Home Screen" gave a screenshot tile.
+  - **`public/favicon.svg`** replaces the Codex Sites template mark with the sidebar's white L on brand blue.
+  - **`public/apple-touch-icon.png`** is the same L on a full-bleed 180px square, which iOS rounds. It was drawn from two rectangles by a one-off Node script with a zlib PNG encoder, with no new dependency. The geometry is in DESIGN.md §31.
+  - **`public/manifest.webmanifest`** sets "Life OS", he/rtl, `start_url` "/" and standalone display, the page background, and the PNG as its icon.
+  - **`app/layout.tsx`** adds `metadata.icons`, `metadata.manifest` and `metadata.appleWebApp` (title "Life OS", default status bar), plus `viewport.themeColor` #f8f8fa. vinext renders all four.
+  - **Deliberately no `viewport-fit=cover`:** the status bar keeps its own strip, so no layout needs safe-area padding at the top.
+- **Files touched:** `public/{favicon.svg,apple-touch-icon.png,manifest.webmanifest}`, `app/layout.tsx`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:** 96/96 tests, typecheck, lint and build. All three files are in `dist/client`. After the deploy, check that they return 200 and that `/` carries the tags (see the next entry or the session log).
+- **Open items / notes for the next AI:**
+  - A Home Screen app has storage separate from Safari, so Alon signs in once inside it.
+  - Whether Google sign-in completes inside the standalone app is unverified; only an iPhone can show it.
+
 ### 2026-09-26 — Claude (Claude Code) — Fixed expenses
 - **Summary:**
   - **Model.** `TransactionData.recurring?:true` (validated: only `true`). An expense gets a switch, "הוצאה קבועה, חוזרת כל חודש": a checkbox with the `switch` attribute, which Safari draws as a native switch. Its row says "קבועה".

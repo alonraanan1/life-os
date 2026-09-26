@@ -736,6 +736,8 @@ Every control answers a press, since the tap highlight is off everywhere: a `sca
 
 The mobile tab bar is a detached glass capsule. It floats 12px above the bottom edge, is inset 16px from each side, and is capped at 400px wide, centred with logical insets. The active tab uses the same `--brand-tint` capsule as the sidebar's active item. In every glass rule, write `-webkit-backdrop-filter` before `backdrop-filter`: the minifier keeps only the last declaration of the pair, and Chromium needs the unprefixed one.
 
+App icon: the sidebar's mark, a white L on `--brand`, drawn as two rectangles on a 180 grid (stem 67–87 × 40–130, foot 67–123 × 110–130), a little right of and above centre, where its weight balances. `public/favicon.svg` has rounded corners for browser tabs. `public/apple-touch-icon.png` is a full-bleed 180px square, because iOS rounds it, and the web manifest uses it too. Redraw both from those rectangles rather than from a font.
+
 Material discipline: the glass tokens (`--glass-*`, backdrop blur) apply only to chrome that floats above content — the mobile tab bar, the desktop sidebar, the modal editor, the segmented filter control, the habit mark pill. Content surfaces — panels, cards, the budget summary, record rows — stay opaque and use the elevation shadow scale instead.
 
 A `prefers-reduced-transparency: reduce` query drops every glass surface to the same opaque material the content panels already use, and removes the ambient washes.
