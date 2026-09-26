@@ -497,7 +497,13 @@ i.fund-dad{background:var(--gold-fill)}
    claim their intrinsic width, so they stack instead of overlapping. */
 @media(max-width:520px){
  .form-columns{grid-template-columns:minmax(0,1fr);gap:16px}
- .life-editor{padding:22px!important}
+ /* The editor becomes a sheet that rises from the bottom edge and leaves the
+    same way, like an iOS sheet. There is no grabber because nothing drags it:
+    the scrim and "ביטול" close it. Timing goes through tw-animate's variables,
+    so the reduced-motion rule still collapses it. */
+ .life-editor{top:auto!important;bottom:0!important;left:0!important;right:0!important;translate:none!important;width:100%!important;max-width:none!important;max-height:92dvh;border-radius:26px 26px 0 0!important;border-bottom:0!important;padding:22px 22px calc(22px + env(safe-area-inset-bottom))!important;--tw-ease:cubic-bezier(.32,.72,0,1)}
+ .life-editor[data-open]{--tw-enter-translate-y:100%;--tw-enter-scale:1;--tw-enter-opacity:1;--tw-duration:.32s}
+ .life-editor[data-closed]{--tw-exit-translate-y:100%;--tw-exit-scale:1;--tw-exit-opacity:1;--tw-duration:.2s}
  .module-header{align-items:flex-start;gap:10px}
  .module-header h2{font-size:18px}
  .module-tools{display:block}

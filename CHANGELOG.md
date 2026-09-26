@@ -19,6 +19,24 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — On a phone, the editor rises from the bottom
+- **Summary:** up to 520px wide, `.life-editor` is a bottom sheet:
+  - full width, 26px top corners, and bottom padding that clears the home indicator;
+  - it enters by sliding up (320ms, `cubic-bezier(.32,.72,0,1)`) and leaves by sliding down (200ms);
+  - it has no grabber and no drag.
+
+  Wider screens keep the centred window.
+  - **`Sheet`** (`components/life/editor.tsx`) is the modal shell: Dialog, content and title. `Editor` is built on it.
+  - **`Sheet` owns its open state** and calls `onClose` from Base UI's `onOpenChangeComplete`, so the exit animation plays before the parent unmounts it. Before this, every editor vanished at once because it was unmounted mid-close.
+  - Its children get a `close` callback. Cancel, a successful save and delete all close through it, which is why the `onDelete` handlers no longer unmount the editor themselves.
+  - `locked` (the editor's `busy`) still holds it open against Escape and outside presses while a save is in flight.
+  - The timing goes through tw-animate's `--tw-enter-*`/`--tw-exit-*`/`--tw-duration`/`--tw-ease` variables rather than `animation-duration`, so the reduced-motion rule still collapses it.
+- **Files touched:** `components/life/{editor,finance,habits,sleep}.tsx`, `app/globals.css`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:**
+  - 91/91 tests, typecheck, lint and build.
+  - A browser harness bundled the real `Editor`, `Sheet` and Base UI dialog with esbuild, with only the store stubbed. At 390px the sheet's top moved 844→157 over about 320ms and back down in about 200ms, `onClose` fired only after the exit, and reopening and Escape both worked. At 1280px it stays a centred 500px window with the 95% zoom.
+- **Open items / notes for the next AI:** on an iPhone, check that the keyboard doesn't hide the focused field or the buttons. If it does, lift the sheet with `visualViewport`.
+
 ### 2026-09-26 — Claude (Claude Code) — Small fixes: no sign-in flash, the budget carries over, habits keep their order, restore in chunks
 - **Summary:**
   - **No sign-in flash.** `AuthGate` rendered the full sign-in card ("טוב שחזרת.") while it checked the session, and that was also the server-rendered first paint, so it flashed on every open. While loading it now renders only `.app-status` ("מתחבר…"), which, like "טוען את הנתונים שלך…", fades in only after 600ms. `.auth-loading` is gone.
