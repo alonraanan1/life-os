@@ -19,6 +19,27 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — Fixed expenses
+- **Summary:**
+  - **Model.** `TransactionData.recurring?:true` (validated: only `true`). An expense gets a switch, "הוצאה קבועה, חוזרת כל חודש": a checkbox with the `switch` attribute, which Safari draws as a native switch. Its row says "קבועה".
+  - **Copies.** `fixedCopies(transactions,month)` offers each fixed series' copy for a month:
+    - a copy's id is `<series>:<YYYY-MM>`, where the series is the first record's id;
+    - it is built from the series' latest earlier occurrence that isn't deleted, and only while that one is still fixed;
+    - the day carries over, capped at the month's length, and review state and source stay behind;
+    - an existing copy, even a deleted one, is never offered again.
+  - **Adding.** Above the month's rows, "הוספת N הוצאות קבועות · ₪X" saves them with those ids. Nothing is added on its own. It works for any month, so next month can be prepared ahead. Two devices can't duplicate a copy: the id is fixed, so the second insert gets a 409.
+  - **Stopping.** Switch it off on the latest occurrence and the series stops.
+  - **The budget-pace streak** (`budgetStreak`) takes the month's fixed expenses off the budget first and leaves them out of the daily pace: (budget − fixed)·day/days, and 0 if nothing is left. Rent on the 1st no longer breaks the run for weeks. The meter and "נותר מהתקציב" still count everything.
+- **Files touched:** `lib/life-model.ts`, `components/life/finance.tsx`, `app/globals.css`, `tests/{model,finance}.test.mjs`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:**
+  - 96/96 tests (copies, the capped day, deleted and switched-off series, the pace, validation, the button's write), typecheck, lint and build.
+  - The real Finance screen was bundled with an in-memory store and driven in a browser:
+    - three August fixed expenses became September copies dated the 1st, 15th and 30th;
+    - the button then disappeared, "נותר" dropped by their total, and the streak held;
+    - switching one off and saving removed "קבועה".
+  - At 320px the button wraps as one sentence; at 390px it is one 44px line.
+  - The native switch is unverified; that needs Safari.
+
 ### 2026-09-26 — Claude (Claude Code) — Habit history: a habit's name opens its month
 - **Summary:**
   - **Opening it.** A habit's icon and name are now one button (`.habit-open`, `aria-haspopup="dialog"`) that opens a `Sheet` titled with the habit's name. The mark pill and the pencil stay where they were.

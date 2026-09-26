@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth,advanceHabit,budgetFor,byCreated} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth,advanceHabit,budgetFor,byCreated,fixedCopies} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
   const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,createdAt:'2026-09-01T00:00:00.000Z',data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
@@ -165,4 +165,30 @@ test('habits keep their creation order, whatever order they are listed in',()=>{
   const listed=[h('c','2026-09-03T00:00:00.000Z'),h('b','2026-09-01T00:00:00.000Z'),h('a','2026-09-01T00:00:00.000Z')];
   assert.deepEqual([...listed].sort(byCreated).map(x=>x.id),['a','b','c']);
   assert.deepEqual(pendingHabitItems(listed,[],'2026-09-26').map(x=>x.habitId),['a','b','c']);
+});
+test('a fixed expense offers one copy a month, built on its latest earlier occurrence',()=>{
+  const tx=(id,date,extra={})=>({id,kind:'transaction',deletedAt:null,createdAt:date,data:{title:'שכר דירה',category:'בית',date,amount:450000,direction:'expense',funder:'me',recurring:true,...extra}});
+  const rent=tx('rent','2026-01-31',{reviewStatus:'complete',source:'bank'});
+  // Same day next month, capped at its length; review state and source stay behind.
+  assert.deepEqual(fixedCopies([rent],'2026-02'),[{id:'rent:2026-02',data:{title:'שכר דירה',category:'בית',date:'2026-02-28',amount:450000,direction:'expense',funder:'me',recurring:true}}]);
+  assert.deepEqual(fixedCopies([rent],'2026-01'),[]);
+  const feb=tx('rent:2026-02','2026-02-28',{amount:460000});
+  assert.deepEqual(fixedCopies([rent,feb],'2026-02'),[]);
+  assert.deepEqual(fixedCopies([rent,{...feb,deletedAt:'2026-02-28'}],'2026-02'),[]);
+  assert.deepEqual(fixedCopies([rent,feb],'2026-03').map(c=>[c.id,c.data.amount]),[['rent:2026-03',460000]]);
+  // Switched off on the latest occurrence, the series stops.
+  assert.deepEqual(fixedCopies([rent,{...feb,data:{...feb.data,recurring:undefined}}],'2026-03'),[]);
+});
+test('fixed expenses come off the budget before the daily pace',()=>{
+  const rent={title:'שכר דירה',category:'בית',date:'2026-09-01',amount:500000,direction:'expense',recurring:true};
+  const coffee={title:'קפה',category:'אוכל',date:'2026-09-02',amount:10000,direction:'expense'};
+  assert.equal(budgetStreak([rent,coffee],1000000,'2026-09-03'),3);
+  assert.equal(budgetStreak([{...rent,recurring:undefined},coffee],1000000,'2026-09-03'),0);
+  assert.equal(budgetStreak([{...rent,amount:1000000}],1000000,'2026-09-03'),0);
+});
+test('only true marks a transaction as fixed',()=>{
+  const base={title:'חדר כושר',category:'בריאות',date:'2026-09-01',amount:19900,direction:'expense'};
+  assert.equal(validate('transaction',{...base,recurring:true}).recurring,true);
+  assert.equal('recurring' in validate('transaction',base),false);
+  assert.throws(()=>validate('transaction',{...base,recurring:'yes'}));
 });

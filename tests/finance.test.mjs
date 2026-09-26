@@ -30,6 +30,7 @@ const {FinanceView}=await import(moduleURL(compiled));
 const {store}=await import(storeURL);
 
 const month=todayKey().slice(0,7);
+const [year,number]=month.split('-').map(Number),previous=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
 // Days 01–07 of the current month, so every row falls in the default month view.
 const expense=day=>{const date=month+'-0'+day;return {id:'t'+day,kind:'transaction',data:{title:'חיוב '+day,category:'אחר',date,amount:1000*day,direction:'expense'},version:1,createdAt:date,updatedAt:date,deletedAt:null};};
 
@@ -105,7 +106,6 @@ test('a month with a transaction shows its figures',async t=>{
 });
 
 test('a month without its own budget keeps the latest earlier one',async t=>{
-  const [year,number]=month.split('-').map(Number),previous=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
   await mount(t,[{id:'budget:'+previous,kind:'budget',data:{month:previous,amount:500000},version:1,createdAt:previous+'-01',updatedAt:previous+'-01',deletedAt:null},expense(1)]);
   const summary=document.querySelector('.budget-summary');
   assert.match(summary.textContent,/נותר מהתקציב/);
@@ -113,4 +113,20 @@ test('a month without its own budget keeps the latest earlier one',async t=>{
   await act(async()=>summary.querySelector('.balance-heading button').click());
   assert.match(globalThis.__financeEditor.title,/^תקציב ל\S+ \d{4}$/);
   assert.doesNotMatch(globalThis.__financeEditor.title,new RegExp(month));
+});
+
+test("last month's fixed expense is added to this month only when asked",async t=>{
+  const rent={id:'rent',kind:'transaction',data:{title:'שכר דירה',category:'בית',date:previous+'-01',amount:450000,direction:'expense',recurring:true},version:1,createdAt:previous+'-01',updatedAt:previous+'-01',deletedAt:null};
+  await mount(t,[rent]);
+  assert.equal(store.writes.length,0);
+  const add=document.querySelector('.fixed-add');
+  assert.match(add.textContent,/הוצאה קבועה אחת/);
+  await act(async()=>add.click());
+  assert.equal(store.writes.length,1);
+  const [kind,data,existing,id]=store.writes[0];
+  assert.equal(kind,'transaction');
+  assert.equal(id,'rent:'+month);
+  assert.equal(existing,undefined);
+  assert.equal(data.date,month+'-01');
+  assert.equal(data.recurring,true);
 });

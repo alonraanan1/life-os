@@ -490,7 +490,7 @@ Motion should support the experience rather than become the experience.
 
 Sheets: on a phone (up to 520px) the editor and every other modal sheet rise from the bottom edge, full width with 26px top corners, in 320ms on `cubic-bezier(.32,.72,0,1)`, and leave the same way in 200ms, the way they came. There is no grabber and no drag: the scrim, Escape and the sheet's own button close it. Wider screens keep the centred glass window and its short zoom. The sheet owns its open state (`Sheet` in `components/life/editor.tsx`), so the exit plays before the parent unmounts it.
 
-Celebration is the one exception to "subtle", and it stays small. When a tap completes the day's last due habit, the completed count pops once (about 450ms, no confetti). That tap is the only trigger, never a data load. Streaks and medals are shown as quiet text lines with a gold flame or medal icon, not badges or banners.
+Celebration is the one exception to "subtle", and it stays small. When a tap completes the day's last due habit, the completed count pops once (about 450ms, no confetti). That tap is the only trigger, never a data load. Streaks and medals are shown as quiet text lines with a gold flame or medal icon, not badges or banners. The budget-pace streak leaves fixed expenses out: they come off the budget first, so rent on the 1st doesn't break the run. Fixed expenses reach a new month only through one quiet button ("הוספת N הוצאות קבועות · ₪X"), never on their own.
 
 ---
 

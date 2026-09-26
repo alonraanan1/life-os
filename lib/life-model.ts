@@ -1,7 +1,7 @@
 export type TaskData={title:string;date:string;time:string;done:boolean;completedAt:string};
 export type HabitData={title:string;emoji:string;days:number[];startDate:string;target?:number;steps?:string[]};
 export type HabitEntryData={habitId:string;date:string;done:boolean;count?:number;stepsDone?:number[]};
-export type TransactionData={title:string;category:string;date:string;amount:number;direction:'expense'|'income';funder?:'me'|'dad';location?:string;reviewStatus?:'pending'|'complete';source?:'wallet'|'bank'};
+export type TransactionData={title:string;category:string;date:string;amount:number;direction:'expense'|'income';funder?:'me'|'dad';location?:string;reviewStatus?:'pending'|'complete';source?:'wallet'|'bank';recurring?:true};
 export type BudgetData={month:string;amount:number};
 export type DadPaymentData={date:string;amount:number};
 export type GoalData={title:string;target:number;current:number;unit:string;date:string};
@@ -113,12 +113,27 @@ export function dadDebt(transactions:TransactionData[],payments:DadPaymentData[]
   return {open,month:Math.min(sum(charges.filter(t=>t.date.startsWith(month))),Math.max(0,open-later))};
 }
 // Days in a row, ending today, on which this month's spending so far stayed
-// within the pro-rata budget: the same rule as the budget meter, so they agree.
+// within the pro-rata budget. Fixed expenses come off the budget first and stay
+// out of the daily pace, so rent on the 1st doesn't break the run for weeks.
 export function budgetStreak(transactions:TransactionData[],budget:number,today:string){
-  const month=today.slice(0,7),day=Number(today.slice(8)),days=monthDays(month),spent=Array(day+1).fill(0);
-  for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)&&t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;
-  let total=0,run=0;for(let d=1;d<=day;d++){total+=spent[d];run=total<=budget*d/days?run+1:0;}
-  return budget>0?run:0;
+  const month=today.slice(0,7),day=Number(today.slice(8)),days=monthDays(month),spent=Array(day+1).fill(0);let fixed=0;
+  for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)){if(t.recurring)fixed+=t.amount;else if(t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;}
+  const allowance=budget-fixed;let total=0,run=0;for(let d=1;d<=day;d++){total+=spent[d];run=total<=allowance*d/days?run+1:0;}
+  return allowance>0?run:0;
+}
+// A fixed expense repeats monthly as a copy with the id <series>:<YYYY-MM>,
+// where the series is the first record's id. A month is offered a copy from the
+// series' latest earlier occurrence while that one is still fixed; a copy once
+// made, even if deleted since, is not offered again. Pass every transaction,
+// deleted ones included. The day carries over, capped at the month's length.
+export function fixedCopies(transactions:Entry<'transaction'>[],month:string){
+  const series=(id:string)=>id.replace(/:\d{4}-\d{2}$/,''),taken=new Set(transactions.map(t=>t.id)),latest=new Map<string,Entry<'transaction'>>();
+  for(const t of transactions)if(!t.deletedAt&&t.data.date<month){const key=series(t.id),seen=latest.get(key);if(!seen||t.data.date>seen.data.date)latest.set(key,t);}
+  return [...latest].flatMap(([key,t])=>{
+    const id=key+':'+month;if(!t.data.recurring||taken.has(id))return [];
+    const data:TransactionData={...t.data,date:month+'-'+String(Math.min(Number(t.data.date.slice(8)),monthDays(month))).padStart(2,'0')};delete data.reviewStatus;delete data.source;
+    return [{id,data}];
+  });
 }
 // A budget carries forward: the month's own, else the latest earlier one, so
 // a new month doesn't start with none. An explicit 0 carries forward too.
@@ -157,7 +172,7 @@ switch(kind){
 case 'task':{const time=text(d.time,5,false);if(time&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))throw new Error('שעה לא תקינה');const completedAt=text(d.completedAt,30,false);if(completedAt&&!Number.isFinite(Date.parse(completedAt)))throw new Error('תאריך השלמה לא תקין');result={title:text(d.title),date:date(d.date,true),time,done:bool(d.done),completedAt};break;}
 case 'habit':{if(!Array.isArray(d.days)||d.days.length<1||d.days.length>7||d.days.some(x=>!Number.isInteger(x)||x<0||x>6))throw new Error('יש לבחור ימי ביצוע');result={title:text(d.title),emoji:text(d.emoji,12),days:[...new Set(d.days)],startDate:date(d.startDate),target:target(d.target),steps:steps(d.steps)};break;}
 case 'habitEntry':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לסמן הרגל בעתיד');result={habitId:text(d.habitId,100),date:day,done:bool(d.done),count:count(d.count),stepsDone:stepsDone(d.stepsDone)};break;}
-case 'transaction':{if(d.direction!=='expense'&&d.direction!=='income')throw new Error('סוג תנועה לא תקין');if(cents(d.amount)<=0)throw new Error('הסכום חייב להיות חיובי');const funder=d.funder==='me'||d.funder==='dad'?d.funder:'me';if(d.reviewStatus!==undefined&&d.reviewStatus!=='pending'&&d.reviewStatus!=='complete')throw new Error('מצב בדיקה לא תקין');if(d.source!==undefined&&d.source!=='wallet'&&d.source!=='bank')throw new Error('מקור חיוב לא תקין');result={title:text(d.title),category:text(d.category,80),date:date(d.date),amount:cents(d.amount),direction:d.direction,funder,...(d.location===undefined?{}:{location:text(d.location,200,false)}),...(d.reviewStatus===undefined?{}:{reviewStatus:d.reviewStatus}),...(d.source===undefined?{}:{source:d.source})};break;}
+case 'transaction':{if(d.direction!=='expense'&&d.direction!=='income')throw new Error('סוג תנועה לא תקין');if(cents(d.amount)<=0)throw new Error('הסכום חייב להיות חיובי');const funder=d.funder==='me'||d.funder==='dad'?d.funder:'me';if(d.reviewStatus!==undefined&&d.reviewStatus!=='pending'&&d.reviewStatus!=='complete')throw new Error('מצב בדיקה לא תקין');if(d.source!==undefined&&d.source!=='wallet'&&d.source!=='bank')throw new Error('מקור חיוב לא תקין');if(d.recurring!==undefined&&d.recurring!==true)throw new Error('הוצאה קבועה לא תקינה');result={title:text(d.title),category:text(d.category,80),date:date(d.date),amount:cents(d.amount),direction:d.direction,funder,...(d.location===undefined?{}:{location:text(d.location,200,false)}),...(d.reviewStatus===undefined?{}:{reviewStatus:d.reviewStatus}),...(d.source===undefined?{}:{source:d.source}),...(d.recurring?{recurring:true}:{})};break;}
 case 'budget':{const month=text(d.month,7);if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('חודש לא תקין');result={month,amount:cents(d.amount)};break;}
 case 'goal':result={title:text(d.title),target:number(d.target,0.01),current:number(d.current),unit:text(d.unit,30),date:date(d.date,true)};break;
 case 'checkin':{const day=date(d.date);if(day>todayKey())throw new Error('לא ניתן לתעד צ׳ק־אין בעתיד');const mood=number(d.mood,1,5);if(!Number.isInteger(mood))throw new Error('דירוג לא תקין');result={date:day,mood,note:text(d.note,3000,false)};break;}

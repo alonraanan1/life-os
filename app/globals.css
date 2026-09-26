@@ -433,6 +433,12 @@ i.fund-dad{background:var(--gold-fill)}
 .sleep-row .record-body>span,.finance-row .record-body>span,.habit-open .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
 .sleep-score{flex:none;font-size:17px;font-weight:600;color:var(--text)}
 .finance-row>bdi{flex:none}
+/* The fixed-expense switch sits on one line with its label, as in iOS Settings;
+   the whole row is the tap target. */
+.life-form .switch-field{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.life-form .switch-field input{flex:none;width:auto;min-width:0;min-height:0;padding:0;margin:0;accent-color:var(--brand)}
+/* Its text lines up with the rows below, like the "עוד N תנועות" disclosure. */
+.quiet-action.fixed-add{margin-inline-start:-12px;margin-bottom:6px;white-space:normal;text-align:start}
 .sleep-history>summary,.finance-history>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-inline-start:-12px}
 .sleep-history>summary::-webkit-details-marker,.finance-history>summary::-webkit-details-marker{display:none}
 .sleep-history>summary:focus-visible,.finance-history>summary:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
