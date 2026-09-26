@@ -19,6 +19,23 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — Habit history: a habit's name opens its month
+- **Summary:**
+  - **Opening it.** A habit's icon and name are now one button (`.habit-open`, `aria-haspopup="dialog"`) that opens a `Sheet` titled with the habit's name. The mark pill and the pencil stay where they were.
+  - **The sheet** has:
+    - month navigation: back stops at the month the habit started, and forward stops at the current month;
+    - the weekday letters;
+    - the month as a grid of the same dots as the week row, each with its day's number underneath;
+    - one stats line, such as "21 מתוך 26 ימים · רצף 5 · שיא 5". The month part counts scheduled days up to today. The run and best come from `perfectStreaks([habit],…)`.
+    - "סגירה".
+  - **Marking.** A past scheduled day can be marked from the grid, exactly as from the week row. Both use `dayDot()`, which was extracted from the week row, so the classes, spoken labels and `toggle()` are shared.
+  - **`monthDays()`** is a new model helper, also used by `budgetStreak`.
+- **Files touched:** `components/life/habits.tsx`, `lib/life-model.ts`, `app/globals.css`, `tests/habits.test.mjs`, `CHANGELOG.md`.
+- **Validation:**
+  - 92/92 tests (new: open the month, see its days, mark the 1st), typecheck, lint and build.
+  - The real Habits screen was bundled with an in-memory store and driven in a browser. At 390px: 44×44 cells, today in bold, marking the 20th updated the dot and the stats, August showed the days before the start muted with back disabled, and "סגירה" closed with the slide-down. At 1280px it is a centred 500px window.
+  - Not checked on a phone.
+
 ### 2026-09-26 — Claude (Claude Code) — On a phone, the editor rises from the bottom
 - **Summary:** up to 520px wide, `.life-editor` is a bottom sheet:
   - full width, 26px top corners, and bottom padding that clears the home indicator;

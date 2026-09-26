@@ -11,7 +11,7 @@ const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toStr
 const storeURL=moduleURL(`export const store={records:[],writes:[],save:async(...args)=>store.writes.push(args)};
 export const useLife=()=>store;
 export const select=(records,kind)=>records.filter(r=>r.kind===kind&&!r.deletedAt);`);
-const stubsURL=moduleURL('export const tap=()=>{},Editor=()=>null,Empty=()=>null,Field=()=>null,field="";');
+const stubsURL=moduleURL('export const tap=()=>{},Editor=()=>null,Empty=()=>null,Field=()=>null,field="",Sheet=({children})=>children(()=>{});');
 const source=await readFile(new URL('../components/life/habits.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{
   jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022,
@@ -84,4 +84,17 @@ test('an edited habit keeps its place in the list',async t=>{
   // The store lists the record saved last first.
   await mount(t,[{...second,version:2},first]);
   assert.deepEqual([...document.querySelectorAll('.habit-record .record-body')].map(body=>body.textContent),['ראשון','שני']);
+});
+
+test('a habit name opens its month, where a past day can be marked',async t=>{
+  await mount(t,[daily('a','מים')]);
+  assert.equal(document.querySelector('.habit-month'),null);
+  await act(async()=>document.querySelector('.habit-open').click());
+  const month=document.querySelector('.habit-month');
+  const [year,number]=date.split('-').map(Number);
+  assert.equal(month.querySelectorAll('button').length,new Date(Date.UTC(year,number,0)).getUTCDate());
+  assert.equal(document.querySelector('[aria-label="החודש הבא"]').disabled,true);
+  await act(async()=>month.querySelector('button').click());
+  assert.equal(store.writes.length,1);
+  assert.equal(store.writes[0][1].date,date.slice(0,8)+'01');
 });

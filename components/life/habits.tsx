@@ -2,10 +2,10 @@
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Activity,Apple,Bed,BookOpen,Brain,Check,ChevronLeft,ChevronRight,Circle,Droplet,Dumbbell,Flame,Footprints,Medal,Moon,PenLine,Pencil,Pill,Plus,Sprout,Sun,Wind} from 'lucide-react';
-import {byCreated,calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,MEDAL_MARKS,MEDAL_STREAKS,perfectStreaks,scheduled,streak,todayKey,weekday,toggleHabitPill,toggleHabitStep,type Entry,type HabitEntryData} from '@/lib/life-model';
+import {byCreated,calendarWeek,dateOffset,entryCount,entryStepsDone,habitTarget,MEDAL_MARKS,MEDAL_STREAKS,monthDays,monthName,perfectStreaks,scheduled,streak,todayKey,weekday,toggleHabitPill,toggleHabitStep,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {tap} from '@/lib/haptics';
 import {select,useLife} from './use-life';
-import {Editor,Empty,Field,field} from './editor';
+import {Editor,Empty,Field,Sheet,field} from './editor';
 
 const days=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 type HabitFilter='scheduled'|'all';
@@ -16,6 +16,7 @@ function habitIcon(emoji:string){return emojiIcons[emoji]||Circle;}
 function readableDate(date:string){
   return new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'}).format(new Date(date+'T12:00:00Z'));
 }
+function addMonths(month:string,delta:number){return new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7))-1+delta,1)).toISOString().slice(0,7);}
 
 export function HabitsView(){
   const {records,save}=useLife();
@@ -27,6 +28,7 @@ export function HabitsView(){
   const [stepsText,setStepsText]=useState('');
   const [cheer,setCheer]=useState(0);
   const [medal,setMedal]=useState('');
+  const [history,setHistory]=useState<{id:string;month:string}>();
   const edit=(h:Entry<'habit'>|null)=>{setEditing(h);setStepsText(h?.data.steps?.join(', ')||'');};
   const stepNames=stepsText.split(',').map(s=>s.trim()).filter(Boolean);
   const stepsLocked=stepNames.length>=2;
@@ -115,6 +117,23 @@ export function HabitsView(){
     await mark(h,day,{habitId:h.id,date:day,done,count,stepsDone},old);
   }
 
+  // One day of a habit as a dot. The week row and the month in the history
+  // sheet both use it, and a past scheduled day can be marked from either.
+  function dayDot(h:Entry<'habit'>,day:string,withDate=false){
+    const target=habitTarget(h.data);
+    const dayEntry=entries.find(e=>e.data.habitId===h.id&&e.data.date===day);
+    const dayCount=dayEntry?entryCount(dayEntry.data):0;
+    const marked=!!dayEntry&&dayEntry.data.done;
+    const partial=!marked&&dayCount>0&&dayCount<target;
+    const canMark=day<=today&&scheduled(h.data,day);
+    // Spoken as a date and a state, not "2026-09-22": a screen reader reads an
+    // ISO date digit by digit.
+    const state=marked?'בוצע':partial?'בוצע חלקית, '+dayCount+' מתוך '+target:day>today?'טרם הגיע':scheduled(h.data,day)?'לא בוצע':'לא מתוכנן';
+    return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+', '+readableDate(day)+': '+state} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}>{withDate&&<span aria-hidden="true">{Number(day.slice(8))}</span>}</button>;
+  }
+
+  const shown=history&&habits.find(h=>h.id===history.id);
+
   return <section className="habits-view">
     <header className="module-header">
       <div>
@@ -176,15 +195,17 @@ export function HabitsView(){
         const pillLabel=stepsList?(done?'איפוס כל השלבים של '+h.data.title:'סימון '+h.data.title+': '+nextStep):(done?'ביטול סימון ':'סימון ')+h.data.title+(target>1?' '+count+' מתוך '+target:'');
         return <div key={h.id} className="habit-record">
           <div className="record-row">
-            <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
-            <div className="record-body">
-              <p>{h.data.title}</p>
-              {(showStreak||showSchedule)&&<small className="habit-schedule">
-                {showStreak&&<><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</>}
-                {showStreak&&showSchedule&&' · '}
-                {showSchedule&&scheduleLabel}
-              </small>}
-            </div>
+            <button type="button" className="habit-open" aria-haspopup="dialog" onClick={()=>setHistory({id:h.id,month:selected.slice(0,7)})}>
+              <span className="habit-emoji" aria-hidden="true"><HabitIcon size={20}/></span>
+              <span className="record-body">
+                <span>{h.data.title}</span>
+                {(showStreak||showSchedule)&&<small className="habit-schedule">
+                  {showStreak&&<><Flame size={13} className="inline"/> {streakDays===1?'יום ביצוע ברצף':streakDays+' ימי ביצוע ברצף'}</>}
+                  {showStreak&&showSchedule&&' · '}
+                  {showSchedule&&scheduleLabel}
+                </small>}
+              </span>
+            </button>
             <div className="habit-actions">
               <button aria-label={pillLabel} aria-pressed={done} disabled={!due} className={'habit-mark '+(done?'checked':'')} onClick={()=>{tap();void (stepsList?togglePill(h,selected):toggle(h,selected)).catch(()=>{});}}>{done?<Check size={17}/>:due?(target>1?count+'/'+target:'סימון'):'מנוחה'}</button>
               <button className="icon-action" aria-label={'עריכת '+h.data.title} onClick={()=>edit(h)}><Pencil size={16}/></button>
@@ -197,23 +218,36 @@ export function HabitsView(){
             })}
           </div>}
           <div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
-            {week.map(day=>{
-              const dayEntry=entries.find(e=>e.data.habitId===h.id&&e.data.date===day);
-              const dayCount=dayEntry?entryCount(dayEntry.data):0;
-              const marked=!!dayEntry&&dayEntry.data.done;
-              const partial=!marked&&dayCount>0&&dayCount<target;
-              const canMark=day<=today&&scheduled(h.data,day);
-              // Spoken as a date and a state, not "2026-09-22": a screen reader reads an
-              // ISO date digit by digit.
-              const state=marked?'בוצע':partial?'בוצע חלקית, '+dayCount+' מתוך '+target:day>today?'טרם הגיע':scheduled(h.data,day)?'לא בוצע':'לא מתוכנן';
-              return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+', '+readableDate(day)+': '+state} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
-            })}
+            {week.map(day=>dayDot(h,day))}
           </div>
         </div>;
       })}
     </div>
 
     {!visible.length&&<Empty title={habits.length?'יום מנוחה מתוכנן':'הרגל קטן, התחלה טובה'} text={habits.length?'אין הרגלים מתוכננים ליום הזה. אפשר לבחור "כל ההרגלים" כדי לערוך את לוח הזמנים.':'בחר משהו שתרצה לעשות באופן קבוע.'} action="הוספת הרגל" onAction={()=>edit(null)}/>}
+
+    {/* A habit's months: the same dots as the week row, with the day's number,
+        from the month the habit started up to this one. */}
+    {history&&shown&&<Sheet title={shown.data.title} onClose={()=>setHistory(undefined)}>{close=>{
+      const {month}=history,dates=Array.from({length:monthDays(month)},(_,i)=>month+'-'+String(i+1).padStart(2,'0'));
+      const due=dates.filter(day=>day<=today&&scheduled(shown.data,day)),doneDays=due.filter(day=>entries.some(e=>e.data.habitId===shown.id&&e.data.date===day&&e.data.done)).length;
+      const runs=perfectStreaks([shown],entries,today);
+      const stats=[due.length?doneDays+' מתוך '+due.length+' ימים':'',runs.current?'רצף '+runs.current:'',runs.best?'שיא '+runs.best:''].filter(Boolean).join(' · ');
+      return <>
+        <div className="date-control habit-month-nav">
+          <button className="icon-action" aria-label="החודש הקודם" disabled={month<=shown.data.startDate.slice(0,7)} onClick={()=>setHistory({id:shown.id,month:addMonths(month,-1)})}><ChevronRight size={17}/></button>
+          <strong aria-live="polite">{monthName(month)}</strong>
+          <button className="icon-action" aria-label="החודש הבא" disabled={month>=today.slice(0,7)} onClick={()=>setHistory({id:shown.id,month:addMonths(month,1)})}><ChevronLeft size={17}/></button>
+        </div>
+        <div className="habit-week-header" aria-hidden="true">{days.map(day=><div key={day}><span>{day}</span></div>)}</div>
+        <div className="habit-history habit-month" aria-label={monthName(month)+': '+shown.data.title}>
+          {Array.from({length:weekday(month+'-01')},(_,i)=><span key={i}/>)}
+          {dates.map(day=>dayDot(shown,day,true))}
+        </div>
+        {stats&&<p className="field-help">{stats}</p>}
+        <footer className="editor-actions"><button type="button" className="quiet-action" onClick={close}>סגירה</button></footer>
+      </>;
+    }}</Sheet>}
 
     {editing!==undefined&&<Editor title={editing?'עריכת הרגל':'הרגל חדש'} onClose={()=>setEditing(undefined)} onSave={form=>{const stepsRaw=field(form,'steps'),steps=stepsRaw?stepsRaw.split(',').map(s=>s.trim()).filter(Boolean):undefined;return save('habit',{title:field(form,'title'),emoji:field(form,'emoji'),startDate:field(form,'startDate'),days:form.getAll('days').map(Number),target:steps?steps.length:Number(field(form,'target'))||1,steps},editing||undefined);}} onDelete={editing?()=>{void save('habit',editing.data,editing,undefined,true).catch(()=>{});}:undefined}>
       <Field label="שם ההרגל"><input name="title" required maxLength={200} defaultValue={editing?.data.title}/></Field>

@@ -115,7 +115,7 @@ export function dadDebt(transactions:TransactionData[],payments:DadPaymentData[]
 // Days in a row, ending today, on which this month's spending so far stayed
 // within the pro-rata budget: the same rule as the budget meter, so they agree.
 export function budgetStreak(transactions:TransactionData[],budget:number,today:string){
-  const month=today.slice(0,7),day=Number(today.slice(8)),days=new Date(Date.UTC(Number(today.slice(0,4)),Number(today.slice(5,7)),0)).getUTCDate(),spent=Array(day+1).fill(0);
+  const month=today.slice(0,7),day=Number(today.slice(8)),days=monthDays(month),spent=Array(day+1).fill(0);
   for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)&&t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;
   let total=0,run=0;for(let d=1;d<=day;d++){total+=spent[d];run=total<=budget*d/days?run+1:0;}
   return budget>0?run:0;
@@ -126,6 +126,7 @@ export function budgetFor(budgets:BudgetData[],month:string){return budgets.filt
 export const MEDAL_STREAKS=[3,7,14,30,100,365],MEDAL_MARKS=[10,50,100,500,1000];
 // The app's short date, as Israelis write it: 22/09 (and 22/09/26 with the year).
 export function dayMonth(date:string,year=false){return date.slice(8,10)+'/'+date.slice(5,7)+(year?'/'+date.slice(2,4):'');}
+export function monthDays(month:string){return new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).getUTCDate();}
 export function monthName(month:string){return new Date(month+'-01T12:00:00Z').toLocaleDateString('he-IL',{month:'long',year:'numeric'});}
 // `signed` lets Intl place the +/- itself, with the direction marks that keep
 // it beside the digits; a sign glued on by hand lands on the wrong side in RTL.

@@ -430,7 +430,7 @@ i.fund-dad{background:var(--gold-fill)}
 .sleep-row{border-top:0;padding-block:8px;border-radius:12px}
 .sleep-row:active,.finance-row:active,.dad-row:active{opacity:.6}
 .sleep-row:focus-visible,.finance-row:focus-visible{outline-offset:-2px}
-.sleep-row .record-body>span,.finance-row .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.sleep-row .record-body>span,.finance-row .record-body>span,.habit-open .record-body>span{display:block;font-size:15px;font-weight:500;overflow-wrap:anywhere}
 .sleep-score{flex:none;font-size:17px;font-weight:600;color:var(--text)}
 .finance-row>bdi{flex:none}
 .sleep-history>summary,.finance-history>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-inline-start:-12px}
@@ -559,6 +559,17 @@ i.fund-dad{background:var(--gold-fill)}
 .habit-schedule{color:var(--text-2)!important;margin-top:2px!important}
 .habit-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
 .habit-record .icon-action{min-width:44px;min-height:44px}
+/* A habit's icon and name open its history; the press dims them, as it does a
+   finance row. */
+.habit-open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:44px;text-align:start;transition:opacity 120ms ease}
+.habit-open:active{opacity:.6}
+/* The history sheet: a month header, then the week row's dots with the day's
+   number under each. */
+.habit-month-nav{justify-content:space-between;margin-bottom:6px}
+.habit-month-nav strong{font-size:15px;font-weight:600;color:var(--text)}
+.habit-month button{gap:4px;padding-block:6px}
+.habit-month button span{font-size:11px;line-height:1;color:var(--text-3);font-variant-numeric:tabular-nums}
+.habit-month button[aria-current="date"] span{color:var(--text);font-weight:700}
 @media(max-width:620px){
  .habit-toolbar{display:block}
  .habit-date-control{justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
@@ -576,10 +587,10 @@ i.fund-dad{background:var(--gold-fill)}
 @media(max-width:359px){.habit-date-control .today-jump{flex:1 0 100%}}
 @media(max-width:480px){
  .habit-summary-copy>small{font-size:11px}
- .habit-record .record-row{gap:7px;align-items:flex-start}
+ .habit-record .record-row,.habit-open{gap:7px;align-items:flex-start}
  .habit-record .habit-emoji{padding-top:5px}
  .habit-record .record-body{padding-top:5px}
- .habit-record .record-body p{line-height:1.35}
+ .habit-record .record-body>span{line-height:1.35}
  .habit-record .record-body small{line-height:1.45}
  .habit-actions{margin-inline-start:auto;align-self:flex-start}
  .habit-mark{margin-top:4px}
