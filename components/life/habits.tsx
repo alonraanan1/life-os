@@ -17,7 +17,7 @@ function readableDate(date:string){
   return new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'}).format(new Date(date+'T12:00:00Z'));
 }
 
-export function HabitsView({compact=false}:{compact?:boolean}){
+export function HabitsView(){
   const {records,save}=useLife();
   const [today,setToday]=useState(todayKey());
   const todayRef=useRef(today);
@@ -49,7 +49,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
 
   const selected=date>today?today:date;
   const dueHabits=habits.filter(h=>scheduled(h.data,selected));
-  const visible=compact?dueHabits:filter==='scheduled'?dueHabits:habits;
+  const visible=filter==='scheduled'?dueHabits:habits;
   const week=calendarWeek(selected);
   const completed=dueHabits.filter(h=>entries.some(e=>e.data.habitId===h.id&&e.data.date===selected&&e.data.done)).length;
   const completionPercent=dueHabits.length?Math.round(completed/dueHabits.length*100):0;
@@ -116,15 +116,15 @@ export function HabitsView({compact=false}:{compact?:boolean}){
   return <section className="habits-view">
     <header className="module-header">
       <div>
-        <h2>{compact?'הרגלים של היום':'ההרגלים שלי'}</h2>
-        <p>{compact?'כל סימון הוא צעד קטן קדימה.':habits.length?habitCountLabel:'התחלה קטנה, שגרה שאפשר לראות.'}</p>
+        <h2>ההרגלים שלי</h2>
+        <p>{habits.length?habitCountLabel:'התחלה קטנה, שגרה שאפשר לראות.'}</p>
       </div>
       <button className="quiet-action" onClick={()=>edit(null)}><Plus size={17}/>הרגל חדש</button>
     </header>
 
     {/* Before the first habit there is no day to move through or sum up;
         the empty state below is the whole screen. */}
-    {!compact&&!!habits.length&&<div className="habit-toolbar">
+    {!!habits.length&&<div className="habit-toolbar">
       <div className="date-control habit-date-control">
         <button className="icon-action" aria-label="היום הקודם" onClick={()=>moveDate(-1)}><ChevronRight size={17}/></button>
         <label className="sr-only" htmlFor="habit-date">יום לתיעוד</label>
@@ -152,7 +152,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
       </div>
     </div>}
 
-    {!compact&&!!visible.length&&<div className="habit-week-header" aria-hidden="true">
+    {!!visible.length&&<div className="habit-week-header" aria-hidden="true">
       {week.map(day=><div key={day}><span>{days[weekday(day)]}</span><b>{new Date(day+'T12:00:00Z').getUTCDate()}</b></div>)}
     </div>}
 
@@ -194,7 +194,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               return <button key={index} className={'habit-step '+(on?'checked':'')} aria-pressed={on} disabled={!due} aria-label={h.data.title+' '+step+(on?' בוצע':' לא בוצע')} onClick={()=>{tap();void toggleStep(h,selected,index).catch(()=>{});}}>{step}</button>;
             })}
           </div>}
-          {!compact&&<div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
+          <div className="habit-history" aria-label={'שבוע קלנדרי: '+h.data.title}>
             {week.map(day=>{
               const dayEntry=entries.find(e=>e.data.habitId===h.id&&e.data.date===day);
               const dayCount=dayEntry?entryCount(dayEntry.data):0;
@@ -206,7 +206,7 @@ export function HabitsView({compact=false}:{compact?:boolean}){
               const state=marked?'בוצע':partial?'בוצע חלקית, '+dayCount+' מתוך '+target:day>today?'טרם הגיע':scheduled(h.data,day)?'לא בוצע':'לא מתוכנן';
               return <button key={day} className={marked?'marked':partial?'partial':canMark?'':'muted'} aria-label={h.data.title+', '+readableDate(day)+': '+state} aria-current={day===today?'date':undefined} aria-pressed={marked} disabled={!canMark} onClick={()=>{tap();void toggle(h,day).catch(()=>{});}}/>;
             })}
-          </div>}
+          </div>
         </div>;
       })}
     </div>

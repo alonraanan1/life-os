@@ -19,6 +19,20 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — The four unmounted screens are deleted
+- **Summary:**
+  - **Deleted, with Alon's OK:** Today, Timeline, Tasks and Goals/Check-ins (`components/life/{today,timeline,tasks,goals}.tsx`). No navigation reached them since the habit-first redesign.
+  - **Simplified:** the `compact` variants of Habits, Finance and Sleep, which only Today used, and about 190 lines of CSS that no mounted component renders. That CSS covered those screens plus the mock-era `.panel`, `.quick`, `.row-item`, `.check`, `.wallet-card` and friends. Each class was checked against every live `className` first.
+  - **`View`** is now `'habits'|'finance'|'data'`.
+- **Kept on purpose:**
+  - the task, check-in and goal data;
+  - their API routes (`/api/task`, `/api/checkin`, `/api/goal-progress`) and model kinds;
+  - backups and the trash can, which still restore every kind.
+- **Supersedes** the 2026-09-15 decision that removed screens keep their code. The data is still kept.
+- **Restoring sleep** (replaces the note in the 2026-09-25 sleep entry, since `compact` is gone): re-add `import {SleepView} from './sleep';` to `components/life/habits.tsx`, wrap its return in a fragment, and render `<SleepView title="הרגל השינה"/>` after the habits `<section>`.
+- **Files touched:** the four deleted components, `components/life/{nav.ts,habits.tsx,finance.tsx,sleep.tsx}`, `app/globals.css`, `CHANGELOG.md`.
+- **Validation:** 84/84 tests, typecheck, lint, build. Static preview of Habits and Finance at 375px shows no change.
+
 ### 2026-09-25 — Claude (Claude Code) — The hub no longer unmarks a step on a repeated request
 - **Summary:** `/api/hub` marked a named step with `toggleHabitStep`, so a second identical request removed the mark. That happens on a Shortcut retry after a lost response, or when the menu went stale because the step was marked in the app meanwhile. Marking is now idempotent there, as `/api/habit-mark` already promised: an already-marked step answers "כבר סומן" and writes nothing. `/api/habits/pending` was already safe (it only accepts items still pending at request time).
 - **Files touched:** `app/api/hub/route.ts`, `tests/hub-steps.test.mjs` (new; the same stubbed-infrastructure pattern as `tests/shortcuts.test.mjs`, kept separate because that file has Codex's uncommitted edits), `CHANGELOG.md`.
