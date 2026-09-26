@@ -78,3 +78,10 @@ test('before the first habit, only the empty state shows',async t=>{
   assert.equal(document.querySelector('.habit-toolbar'),null);
   assert.equal(document.querySelector('.habit-summary'),null);
 });
+
+test('an edited habit keeps its place in the list',async t=>{
+  const first={...daily('a','ראשון'),createdAt:'2026-01-01T00:00:00.000Z'},second={...daily('b','שני'),createdAt:'2026-01-02T00:00:00.000Z'};
+  // The store lists the record saved last first.
+  await mount(t,[{...second,version:2},first]);
+  assert.deepEqual([...document.querySelectorAll('.habit-record .record-body')].map(body=>body.textContent),['ראשון','שני']);
+});

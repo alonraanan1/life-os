@@ -103,3 +103,14 @@ test('a month with a transaction shows its figures',async t=>{
   await mount(t,[expense(1)]);
   assert.ok(document.querySelector('.finance-metrics'));
 });
+
+test('a month without its own budget keeps the latest earlier one',async t=>{
+  const [year,number]=month.split('-').map(Number),previous=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
+  await mount(t,[{id:'budget:'+previous,kind:'budget',data:{month:previous,amount:500000},version:1,createdAt:previous+'-01',updatedAt:previous+'-01',deletedAt:null},expense(1)]);
+  const summary=document.querySelector('.budget-summary');
+  assert.match(summary.textContent,/נותר מהתקציב/);
+  assert.match(summary.querySelector('.balance-value').textContent,/4,990\.00/);
+  await act(async()=>summary.querySelector('.balance-heading button').click());
+  assert.match(globalThis.__financeEditor.title,/^תקציב ל\S+ \d{4}$/);
+  assert.doesNotMatch(globalThis.__financeEditor.title,new RegExp(month));
+});

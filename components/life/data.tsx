@@ -2,6 +2,23 @@
 import {useRef,useState} from 'react';import {Award,Download,LogOut,Medal,Pencil,RotateCcw,Upload} from 'lucide-react';import {dayMonth,MEDAL_MARKS,MEDAL_STREAKS,money,perfectStreaks,todayKey,type Entry,type Kind} from '@/lib/life-model';import {select,useLife} from './use-life';import {Editor,Field,Empty,field} from './editor';
 const labels:Record<Kind,string>={task:'משימות',habit:'הרגלים',habitEntry:'סימוני הרגלים',transaction:'תנועות כספיות',budget:'תקציבים',goal:'מטרות',checkin:'צ׳ק־אינים',sleep:'לילות שינה',settings:'הגדרות',dadPayment:'תשלומים לאבא'};
 const single:Record<Kind,string>={task:'משימה',habit:'הרגל',habitEntry:'סימון הרגל',transaction:'תנועה',budget:'תקציב',goal:'מטרה',checkin:'צ׳ק־אין',sleep:'שינה',settings:'הגדרות',dadPayment:'תשלום לאבא'};
+// D1 counts every statement in a batch toward a per-request limit (50 on the
+// free plan, the session check included), so a backup goes up 40 records at a
+// time. Import never overwrites, so running it again after a failure is safe.
+export async function restoreBackup(text:string){
+  let input:{format?:unknown;schemaVersion?:unknown;records?:unknown};
+  try{input=JSON.parse(text);}catch{throw new Error('קובץ הגיבוי אינו תקין.');}
+  const records=input?.records;
+  if(input?.format!=='life-os'||input.schemaVersion!==1||!Array.isArray(records))throw new Error('קובץ הגיבוי אינו תקין.');
+  let imported=0;
+  for(let i=0;i<records.length;i+=40){
+    const response=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({format:'life-os',schemaVersion:1,records:records.slice(i,i+40)})});
+    const result=await response.json().catch(()=>({})) as {imported?:number;error?:string};
+    if(!response.ok){const reason=result.error||'הייבוא לא הצליח.';throw new Error(i?'הייבוא נעצר אחרי '+i+' רשומות: '+reason+' מה שכבר שוחזר לא יוכפל בניסיון נוסף.':reason);}
+    imported+=result.imported||0;
+  }
+  return imported;
+}
 function titleOf(entry:Entry){if(entry.kind==='dadPayment')return money((entry as Entry<'dadPayment'>).data.amount);const data=entry.data as Record<string,unknown>;for(const key of ['title','note','name','month','date']){const value=data[key];if(typeof value==='string'&&value.trim())return key==='date'?dayMonth(value,true):value;}return entry.id;}
 export function DataView(){
   const {records,save,busy,refresh}=useLife();const file=useRef<HTMLInputElement>(null);
@@ -19,10 +36,10 @@ export function DataView(){
   const restore=(entry:Entry)=>(save as unknown as (kind:Kind,data:unknown,existing:Entry,id?:string,deleted?:boolean)=>Promise<unknown>)(entry.kind,entry.data,entry,undefined,false);
   async function importBackup(chosen:File){
     setMessage('');setProblem('');
-    if(chosen.size>2000000){setProblem('קובץ הגיבוי גדול מ־2MB. אפשר לייבא אותו בחלקים.');return;}
+    if(chosen.size>20000000){setProblem('קובץ הגיבוי גדול מ־20MB.');return;}
     setWorking(true);
-    try{const body=await chosen.text();const response=await fetch('/api/import',{method:'POST',headers:{'Content-Type':'application/json'},body});const result=await response.json() as {imported?:number;error?:string};if(!response.ok)throw new Error(result.error||'הייבוא לא הצליח');await refresh();setMessage(result.imported?'שוחזרו '+result.imported+' רשומות.':'כל הרשומות בקובץ כבר קיימות אצלך.');}
-    catch(error){setProblem(error instanceof Error?error.message:'הייבוא לא הצליח.');}
+    try{const imported=await restoreBackup(await chosen.text());await refresh();setMessage(imported?'שוחזרו '+imported+' רשומות.':'כל הרשומות בקובץ כבר קיימות אצלך.');}
+    catch(error){await refresh();setProblem(error instanceof Error?error.message:'הייבוא לא הצליח.');}
     finally{setWorking(false);if(file.current)file.current.value='';}
   }
   async function logout(){setWorking(true);try{await fetch('/api/auth',{method:'DELETE'});}catch{}window.location.reload();}

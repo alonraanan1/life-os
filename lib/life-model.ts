@@ -45,8 +45,11 @@ export function entryCount(e:HabitEntryData){return e.count??(e.done?1:0);}
 // toggleHabitStep). Tolerant of an index a later habit edit removed: it is
 // simply not among the current step indices when read back.
 export function entryStepsDone(e:HabitEntryData):number[]{return e.stepsDone??Array.from({length:entryCount(e)},(_,i)=>i);}
+// Creation order, so an edited record keeps its place: the server lists by
+// last update and the store puts every saved record first.
+export function byCreated(a:Pick<Entry,'id'|'createdAt'>,b:Pick<Entry,'id'|'createdAt'>){return a.createdAt.localeCompare(b.createdAt)||a.id.localeCompare(b.id);}
 export function pendingHabitItems(habits:Entry<'habit'>[],entries:Entry<'habitEntry'>[],day:string){
-  return habits.filter(h=>!h.deletedAt&&scheduled(h.data,day)).flatMap((h):{habitId:string;title:string;stepIndex?:number}[]=>{
+  return habits.filter(h=>!h.deletedAt&&scheduled(h.data,day)).sort(byCreated).flatMap((h):{habitId:string;title:string;stepIndex?:number}[]=>{
     const entry=entries.find(e=>!e.deletedAt&&e.data.habitId===h.id&&e.data.date===day);
     if(entry?.data.done)return [];
     const target=habitTarget(h.data);
@@ -102,8 +105,6 @@ export function perfectStreaks(habits:Entry<'habit'>[],entries:Entry<'habitEntry
   }
   return {current:run,best};
 }
-// Days in a row, ending today, on which this month's spending so far stayed
-// within the pro-rata budget: the same rule as the budget meter, so they agree.
 // Payments settle the oldest charges first, so what is still owed for a month
 // is the part of the open balance that later months have not already taken.
 export function dadDebt(transactions:TransactionData[],payments:DadPaymentData[],month:string){
@@ -111,17 +112,23 @@ export function dadDebt(transactions:TransactionData[],payments:DadPaymentData[]
   const open=Math.max(0,sum(charges)-sum(payments)),later=sum(charges.filter(t=>t.date.slice(0,7)>month));
   return {open,month:Math.min(sum(charges.filter(t=>t.date.startsWith(month))),Math.max(0,open-later))};
 }
+// Days in a row, ending today, on which this month's spending so far stayed
+// within the pro-rata budget: the same rule as the budget meter, so they agree.
 export function budgetStreak(transactions:TransactionData[],budget:number,today:string){
   const month=today.slice(0,7),day=Number(today.slice(8)),days=new Date(Date.UTC(Number(today.slice(0,4)),Number(today.slice(5,7)),0)).getUTCDate(),spent=Array(day+1).fill(0);
   for(const t of transactions)if(t.direction==='expense'&&t.date.startsWith(month)&&t.date<=today)spent[Number(t.date.slice(8))]+=t.amount;
   let total=0,run=0;for(let d=1;d<=day;d++){total+=spent[d];run=total<=budget*d/days?run+1:0;}
   return budget>0?run:0;
 }
+// A budget carries forward: the month's own, else the latest earlier one, so
+// a new month doesn't start with none. An explicit 0 carries forward too.
+export function budgetFor(budgets:BudgetData[],month:string){return budgets.filter(b=>b.month<=month).sort((a,b)=>b.month.localeCompare(a.month))[0]?.amount??0;}
 export const MEDAL_STREAKS=[3,7,14,30,100,365],MEDAL_MARKS=[10,50,100,500,1000];
-// `signed` lets Intl place the +/- itself, with the direction marks that keep
-// it beside the digits; a sign glued on by hand lands on the wrong side in RTL.
 // The app's short date, as Israelis write it: 22/09 (and 22/09/26 with the year).
 export function dayMonth(date:string,year=false){return date.slice(8,10)+'/'+date.slice(5,7)+(year?'/'+date.slice(2,4):'');}
+export function monthName(month:string){return new Date(month+'-01T12:00:00Z').toLocaleDateString('he-IL',{month:'long',year:'numeric'});}
+// `signed` lets Intl place the +/- itself, with the direction marks that keep
+// it beside the digits; a sign glued on by hand lands on the wrong side in RTL.
 export function money(cents:number,signed=false){return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:2,signDisplay:signed?'exceptZero':'auto'}).format(cents/100);}
 // The stored value remains decimal hours for old records and API clients.
 // In the interface, duration is entered and displayed as hours plus real minutes.

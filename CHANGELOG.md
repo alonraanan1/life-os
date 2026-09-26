@@ -19,6 +19,18 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-09-26 — Claude (Claude Code) — Small fixes: no sign-in flash, the budget carries over, habits keep their order, restore in chunks
+- **Summary:**
+  - **No sign-in flash.** `AuthGate` rendered the full sign-in card ("טוב שחזרת.") while it checked the session, and that was also the server-rendered first paint, so it flashed on every open. While loading it now renders only `.app-status` ("מתחבר…"), which, like "טוען את הנתונים שלך…", fades in only after 600ms. `.auth-loading` is gone.
+  - **The budget carries forward.** `budgetFor(budgets,month)` returns the month's own budget, else the latest earlier one, else 0 (an explicit 0 carries too). Finance and the hub summary use it, so a new month no longer starts with no budget. Saving still writes `budget:<month>` for the month shown. The editor title reads "תקציב לספטמבר 2026" (`monthName()`).
+  - **Habits keep their order.** They were listed by last update (the server's `ORDER BY updated_at DESC`, and the store puts every save first), so an edited habit jumped to the top. `byCreated` sorts them by creation in the Habits screen, `pendingHabitItems` and the hub. New habits go last. The SQL order is unchanged, so the pending-expense list keeps its order.
+  - **Restore works with a large backup.** D1 counts each statement in a batch toward a per-request limit (50 on the free plan, 1,000 on paid, the session check included), so one batch of the whole file failed from 50 records on the free plan and at exactly 1,000 on paid. `restoreBackup()` sends 40 records per request. A failure says how many went in first, and retrying is safe because import never overwrites. The client limit is 20MB. The route now keeps a valid `createdAt` from the file, so restored habits keep their order.
+  - **Keypads:** amount fields use `inputMode="decimal"` and the daily count uses `inputMode="numeric"`.
+  - **Habit icons:** six more (Pill, Brain, PenLine, Sun, Moon, Apple), 14 in all, picked from a row of radio chips instead of a select of names. `.day-picker` is renamed `.chip-picker`, since both pickers share it.
+  - Two comments in `lib/life-model.ts` are back above the functions they describe.
+- **Files touched:** `components/life/{auth-gate,data,finance,habits}.tsx`, `app/api/{hub,import}/route.ts`, `lib/life-model.ts`, `app/globals.css`, `tests/{auth-gate,import}.test.mjs` (new), `tests/{model,habits,finance}.test.mjs`, `DESIGN.md`, `CHANGELOG.md`.
+- **Validation:** 91/91 tests. Each new test fails without its fix. Typecheck, lint and build pass. Preview at 390px shows the icon picker, and the loading line hidden at load and shown after 1s. Not checked on a phone.
+
 ### 2026-09-26 — Claude (Claude Code) — The four unmounted screens are deleted
 - **Summary:**
   - **Deleted, with Alon's OK:** Today, Timeline, Tasks and Goals/Check-ins (`components/life/{today,timeline,tasks,goals}.tsx`). No navigation reached them since the habit-first redesign.

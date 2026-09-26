@@ -1,5 +1,5 @@
 import {json} from '@/lib/auth';
-import {advanceHabit,DAD_CATEGORY,entryStepsDone,habitTarget,money,scheduled,streak,todayKey,toggleHabitStep,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
+import {advanceHabit,budgetFor,byCreated,DAD_CATEGORY,entryStepsDone,habitTarget,money,scheduled,streak,todayKey,toggleHabitStep,validate,type Entry,type HabitEntryData} from '@/lib/life-model';
 import {allRecords,oneRecord} from '@/lib/life-store';
 import {authorized,database,num,readBody,upsert} from '@/lib/shortcuts';
 
@@ -18,13 +18,13 @@ async function load(){
   const today=todayKey();
   const all=await allRecords();
   const live=all.filter(r=>!r.deletedAt);
-  const habits=live.filter(r=>r.kind==='habit') as Entry<'habit'>[];
+  const habits=(live.filter(r=>r.kind==='habit') as Entry<'habit'>[]).sort(byCreated);
   const entries=live.filter(r=>r.kind==='habitEntry') as Entry<'habitEntry'>[];
   const tasks=live.filter(r=>r.kind==='task') as Entry<'task'>[];
   const goals=live.filter(r=>r.kind==='goal') as Entry<'goal'>[];
   const transactions=live.filter(r=>r.kind==='transaction') as Entry<'transaction'>[];
   const month=today.slice(0,7);
-  const budget=live.find(r=>r.id==='budget:'+month) as Entry<'budget'>|undefined;
+  const budget=budgetFor((live.filter(r=>r.kind==='budget') as Entry<'budget'>[]).map(r=>r.data),month);
   const checkin=live.find(r=>r.id==='checkin:'+today);
   const sleep=live.find(r=>r.id==='sleep:'+today);
   const due=habits.filter(h=>scheduled(h.data,today));
@@ -40,7 +40,7 @@ function summary(s:State){
   const parts=[open.length+' משימות פתוחות'];
   if(overdue)parts.push(overdue+' באיחור');
   if(s.due.length)parts.push('הרגלים '+done+'/'+s.due.length);
-  if(s.budget)parts.push('נשאר '+money(s.budget.data.amount-spent));
+  if(s.budget>0)parts.push('נשאר '+money(s.budget-spent));
   else parts.push('הוצאות החודש '+money(spent));
   return parts.join(' · ');
 }

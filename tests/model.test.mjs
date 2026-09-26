@@ -1,7 +1,7 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth,advanceHabit} from '../lib/life-model.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {validate,streak,scheduled,dateOffset,todayKey,calendarWeek,effectiveFunder,effectiveCategory,DAD_CATEGORY,entryCount,entryStepsDone,habitTarget,toggleHabitStep,toggleHabitPill,sleepParts,sleepHoursFromParts,formatSleepDuration,expenseMissingFields,pendingHabitItems,perfectStreaks,budgetStreak,money,dadDebt,settleEntry,dayMonth,advanceHabit,budgetFor,byCreated} from '../lib/life-model.ts';
 test('charging reminder lists only unfinished habits scheduled today, with remaining steps',()=>{
   const day='2026-09-25';
-  const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
+  const habit=(id,title,extra={})=>({id,kind:'habit',deletedAt:null,createdAt:'2026-09-01T00:00:00.000Z',data:{title,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6],...extra}});
   const entry=(habitId,done,count,stepsDone)=>({kind:'habitEntry',deletedAt:null,data:{habitId,date:day,done,count,stepsDone}});
   const habits=[habit('a','מים',{target:3}),habit('b','ויטמינים',{steps:['מגנזיום','אבץ','תוסף']}),habit('c','בוצע'),habit('d','לא היום',{days:[0]})];
   assert.deepEqual(pendingHabitItems(habits,[entry('a',false,1),entry('b',false,1,[1]),entry('c',true,1)],day),[
@@ -150,4 +150,19 @@ test('a step removed from the habit no longer counts toward the day',()=>{
   const stepped={title:'x',emoji:'x',days:[0],startDate:'2026-09-01',steps:['a','b','c']},day={habitId:'h',date:'2026-09-20'};
   assert.deepEqual(settleEntry(stepped,{...day,done:true,count:3,stepsDone:[0,1,3]}),{...day,done:false,count:2,stepsDone:[0,1]});
   assert.deepEqual(advanceHabit(stepped,{...day,done:true,count:3,stepsDone:[0,1,3]}),{stepsDone:[0,1,2],count:3,done:true});
+});
+test('a budget carries forward until a later month sets its own, and an explicit 0 carries too',()=>{
+  const b=(month,amount)=>({month,amount});
+  assert.equal(budgetFor([],'2026-10'),0);
+  assert.equal(budgetFor([b('2026-08',300000),b('2026-09',500000)],'2026-11'),500000);
+  assert.equal(budgetFor([b('2026-09',500000),b('2026-10',400000)],'2026-10'),400000);
+  assert.equal(budgetFor([b('2026-09',500000)],'2026-08'),0);
+  assert.equal(budgetFor([b('2026-09',500000),b('2026-10',0)],'2026-12'),0);
+});
+test('habits keep their creation order, whatever order they are listed in',()=>{
+  const h=(id,createdAt)=>({id,kind:'habit',deletedAt:null,createdAt,data:{title:id,emoji:'x',startDate:'2026-09-01',days:[0,1,2,3,4,5,6]}});
+  // Listed newest update first, the way the server and the store return them.
+  const listed=[h('c','2026-09-03T00:00:00.000Z'),h('b','2026-09-01T00:00:00.000Z'),h('a','2026-09-01T00:00:00.000Z')];
+  assert.deepEqual([...listed].sort(byCreated).map(x=>x.id),['a','b','c']);
+  assert.deepEqual(pendingHabitItems(listed,[],'2026-09-26').map(x=>x.habitId),['a','b','c']);
 });

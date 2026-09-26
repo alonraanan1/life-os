@@ -378,6 +378,8 @@ Avoid:
 
 Errors should explain how to fix the problem.
 
+In Life OS, a small fixed set of choices is a row of 44px chips, seven to a row, with the input inside each chip: the habit's days (checkboxes) and its icon (radios, each named by `aria-label`). Money fields ask for the decimal keypad (`inputMode="decimal"`) and counts for the number pad (`inputMode="numeric"`), keeping `type="number"` for its limits.
+
 ---
 
 ## 15. Icons
@@ -527,6 +529,8 @@ Use appropriate:
 Do not show a full-page spinner for a small local operation.
 
 Loading UI should reflect the shape of the content being loaded when reasonable.
+
+In Life OS, the session check and the first data load show nothing for 600ms, then one quiet line (`.app-status`). The first paint never shows a screen that is about to change: the sign-in card appears only once the server says there is no session. It used to flash on every open.
 
 ---
 
