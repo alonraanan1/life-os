@@ -10,8 +10,7 @@ export async function GET(request:Request){
     const habits=all.filter((r):r is Entry<'habit'>=>r.kind==='habit');
     const entries=all.filter((r):r is Entry<'habitEntry'>=>r.kind==='habitEntry');
     const items=pendingHabitItems(habits,entries,todayKey());
-    const sleepMissing=!all.filter((r):r is Entry<'sleep'>=>r.kind==='sleep').some(r=>!r.deletedAt&&r.data.date===todayKey());
-    const choices=[...items.map(item=>item.title),...(sleepMissing?['שינה']:[])];
+    const choices=items.map(item=>item.title);
     return json({count:choices.length,choices});
   }catch{return json({error:'storage_unavailable'},503);}
 }

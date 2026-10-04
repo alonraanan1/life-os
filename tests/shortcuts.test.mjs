@@ -63,11 +63,11 @@ test('rejected habit auth logs only safe shape diagnostics',async()=>{
   assert.equal(messages[0].includes('test-token'),false);
 });
 
-test('charging choices list each unmarked vitamin separately and include missing sleep',async()=>{
+test('charging choices list each unmarked vitamin separately and omit sleep',async()=>{
   state.records=[{...habit,data:{...habit.data,title:'ויטמינים',steps:['מגנזיום','אבץ','תוסף']}},entry({count:1,done:false,stepsDone:[1]})];
   const response=await get('habits/pending');
   assert.equal(response.status,200);
-  assert.deepEqual((await response.json()).choices,['ויטמינים: מגנזיום','ויטמינים: תוסף','שינה']);
+  assert.deepEqual((await response.json()).choices,['ויטמינים: מגנזיום','ויטמינים: תוסף']);
 });
 
 test('selected vitamin is marked without clearing an already marked vitamin',async()=>{
@@ -85,7 +85,7 @@ test('selected numeric habit advances once; sleep is delegated to its shortcut',
   assert.equal((await post('habits/pending',{choice:'שינה'})).status,400);
 });
 
-test('charging choices are empty when all due habits and sleep are recorded',async()=>{
+test('charging choices are empty when all due habits are recorded, regardless of sleep',async()=>{
   state.records=[habit,entry({count:3,done:true}),{id:'sleep:'+todayKey(),kind:'sleep',deletedAt:null,data:{date:todayKey(),score:80,hours:7,note:''}}];
   assert.deepEqual((await (await get('habits/pending')).json()).choices,[]);
 });
