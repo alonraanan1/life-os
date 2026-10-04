@@ -19,6 +19,11 @@ Template for a new entry:
 
 ## Entries
 
+### 2026-10-04 — Codex — Charger shortcut no longer asks about sleep
+- **Summary:** The pending-habits endpoint was still adding "שינה" when no sleep record existed for today, so the charger shortcut kept offering it after sleep was removed from the habit flow. The endpoint now returns only unfinished habits and steps.
+- **Files touched:** `app/api/habits/pending/route.ts`, `tests/shortcuts.test.mjs`, `docs/SHORTCUTS.md`, `CHANGELOG.md`.
+- **Open items / notes for the next AI:** A Shortcut may need an iCloud refresh on the iPhone before it sees the updated server list. `LifeOs Sleep` remains available for other/manual flows; the charger prompt no longer returns sleep.
+
 ### 2026-09-26 — Claude (Claude Code) — Life OS as a Home Screen app
 - **Summary:**
   - **What was missing.** The site had no icon (`/favicon.ico` and `/apple-touch-icon.png` returned 404) and no manifest, so "Add to Home Screen" gave a screenshot tile.
